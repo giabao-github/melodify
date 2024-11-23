@@ -1,0 +1,6 @@
+.custom-toast {
+  position: absolute !important;
+  left: 50% !important;
+  transform: translateX(-50%) translateY(40px) !important;
+  top: 0 !important;
+}

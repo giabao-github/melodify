@@ -1,0 +1,39 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@200;300;400;500;600;700;800;900&display=swap');
+
+button {
+  transition: all 0.3s ease;
+  font-family: 'Nunito';
+}
+
+.supabase-auth-ui_ui-button,
+.supabase-auth-ui_ui-label {
+  font-family: 'Nunito' !important;
+}
+
+.supabase-auth-ui_ui-button:hover {
+  border: #f0b94a 1px solid !important;
+}
+
+.supabase-auth-ui_ui-button[type="submit"] {
+  color: #000;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 16px;
+}
+
+.supabase-auth-ui_ui-button:hover[type="submit"] {
+  scale: 105%;
+  background-color: #f0b94a !important;
+}
+
+.supabase-auth-ui_ui-input {
+  margin-bottom: 6px;
+}
+
+.supabase-auth-ui_ui-input:focus {
+  border: #e4a020 3px solid !important;
+}
+
+.supabase-auth-ui_ui-input::placeholder {
+  font-size: 15px;
+}

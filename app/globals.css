@@ -1,0 +1,77 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@200;300;400;500;600;700;800;900&display=swap');
+
+html, 
+body, 
+:root {
+  height: 100%;
+  background-color: #000;
+  color-scheme: dark;
+  --primary-color: #6C5CE7;
+  --accent-color: #00BFFF;
+  --background: #1B1B1B;
+  --text-color: #F5F5F5;
+  --secondary-accent: #FF6B81;
+}
+
+body {
+  font-family: 'Nunito';
+}
+
+main {
+  padding-top: 2px !important;
+  padding-bottom: 2px !important;
+}
+
+input[type="email"],
+input[type="password"],
+input[type="text"] {
+  letter-spacing: 1px;
+  font-size: 16px;
+}
+
+/* Custom styles for the range input */
+input[type="range"] {
+  --slider-thumb-color: #000;
+  --slider-track-before: #000;
+  --slider-track-after: #ccc;
+
+  -webkit-appearance: none;
+  appearance: none;
+  width: 30%;
+  height: 8px;
+  background: linear-gradient(
+    to right,
+    var(--slider-track-before) 0%,
+    var(--slider-track-before) calc(var(--value, 50) * 1%),
+    var(--slider-track-after) calc(var(--value, 50) * 1%),
+    var(--slider-track-after) 100%
+  );
+  border-radius: 50px;
+  outline: none;
+  transition: background 0.1s ease-in-out;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 16px;
+  width: 16px;
+  background-color: var(--slider-thumb-color);
+  border-radius: 50px;
+  cursor: pointer;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
+}
+
+input[type="range"]::-moz-range-thumb,
+input[type="range"]::-ms-thumb {
+  height: 16px;
+  width: 16px;
+  background-color: var(--slider-thumb-color);
+  border-radius: 50px;
+  cursor: pointer;
+}
+
+
