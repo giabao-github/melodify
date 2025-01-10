@@ -57,7 +57,6 @@ const SearchInput = () => {
 
   return (
     <div className='flex items-center bg-neutral-800 border-white border-2 rounded-full px-4 w-2/3'>
-      <title>{`Melodify | ${value.length > 0 ? value : 'Home'}`}</title>
       <CiSearch className='text-white stroke-1' size={32} />
       <Input
         className='bg-neutral-800 placeholder-neutral-500 flex-1 outline-none text-base font-medium'

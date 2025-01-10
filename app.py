@@ -49,3 +49,6 @@ async def generate_music(request: MusicRequest):
   except Exception as e:
     print("Error: ", e)
     raise HTTPException(status_code=500, detail=str(e)) from e
+
+
+# Run server: uvicorn app:app --host 0.0.0.0 --port 8000 --reload

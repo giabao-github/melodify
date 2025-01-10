@@ -1,15 +1,22 @@
-import getSongsByAuthor from "../../actions/getSongsByAuthor";
-import getSongsByTitle from "../../actions/getSongsByTitle";
-import Search from "./components/Search";
+import getSongsByAuthor from '../../actions/getSongsByAuthor';
+import getSongsByTitle from '../../actions/getSongsByTitle';
+import Search from './components/Search';
 
 export const revalidate = 0;
 
 const SearchPage = async ({ searchParams }) => {
-  const songs = await getSongsByTitle(searchParams.title);
-  const authors = await getSongsByAuthor(searchParams.title);
+  const resolvedSearchParams = await searchParams;
+  const { title = '' } = resolvedSearchParams;
+  const [songs, authors] = await Promise.all([
+    getSongsByTitle(title),
+    getSongsByAuthor(title),
+  ]);
 
   return (
-    <Search songs={songs} authors={authors} />
+    <>
+      <title>Melodify | Search</title>
+      <Search songs={songs} authors={authors} />
+    </>
   );
 };
 
