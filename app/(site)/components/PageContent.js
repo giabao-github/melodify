@@ -1,13 +1,13 @@
 "use client";
 
-import SongItem from '@/components/SongItem';
-import useOnPlay from '@/hooks/useOnPlay';
-import usePlayer from '@/hooks/usePlayer';
-import useSong from '@/hooks/useSong';
-import { useUser } from '@/hooks/useUser';
+import SongItem from '../../components/SongItem';
+import useOnPlay from '../../hooks/useOnPlay';
+import usePlayer from '../../hooks/usePlayer';
+import useSong from '../../hooks/useSong';
+import { useUser } from '../../hooks/useUser';
 import { useSupabaseClient } from '@supabase/auth-helpers-react';
 import Link from 'next/link';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { BounceLoader } from 'react-spinners';
 
@@ -15,7 +15,6 @@ import { BounceLoader } from 'react-spinners';
 const PageContent = ({ songs }) => {
   const [targetSong, setTargetSong] = useState(null);
   const [sortedSongs, setSortedSongs] = useState(songs);
-  const [counter, setCounter] = useState(0);
   const [loading, setLoading] = useState(true);
   
   const onPlay = useOnPlay(sortedSongs);
@@ -38,8 +37,9 @@ const PageContent = ({ songs }) => {
       const topSongSet = new Set(topSongField.split(',').map(s => s.trim().toLowerCase()));
       let matches = 0;
       for (const item of songSet) {
-        if (topSongSet.has(item)) 
+        if (topSongSet.has(item)) {
           matches++;
+        }
       }
       return matches * scorePerMatch;
     };
@@ -74,12 +74,17 @@ const PageContent = ({ songs }) => {
       setTargetSong(topSongs[randomIndex]);
     }
     
-    if (songs && user && !targetSong)
+    if (songs && user && !targetSong) {
       fetchTopSongs();
+    } else {
+      setLoading(false);
+    }
   }, [songs, supabaseClient, targetSong, user]);
 
   useEffect(() => {
-    if (!targetSong) return;
+    if (!targetSong) {
+      return;
+    }
 
     const fetchAllSongs = async () => {
       const { data: allSongs, error: allSongsError } = await supabaseClient
@@ -101,14 +106,13 @@ const PageContent = ({ songs }) => {
       setSortedSongs(sorted);
       const sortedIds = sorted.map(song => song.id);
       setIds(sortedIds);
-      console.log("set ids")
       setLoading(false);
-      setCounter(counter + 1);
     };
-    fetchAllSongs();
-    // console.log(`Target: ${targetSong.id}, ids: ${ids}`)
 
-  }, [counter, ids, setIds, supabaseClient, targetSong]);
+    if (user && targetSong) {
+      fetchAllSongs();
+    }
+  }, [ids, setIds, supabaseClient, targetSong, user]);
 
   if (songs.length === 0) {
     return (
@@ -123,12 +127,11 @@ const PageContent = ({ songs }) => {
     return (
       <div className='mt-40 text-xl flex justify-center items-center flex-col'>
         <BounceLoader color="#18FFFF" loading={true} size={50} className='animate-bounce' />
-        <span className='mt-3 text-white'>Loading user data...</span>
       </div>
     );
   }
   else {
-    console.log(`target: ${targetSong.title}, sorted songs: ${sortedSongs.map(song => ' ' + song.title)}`)
+    // console.log(`target: ${targetSong.title}, sorted songs: ${sortedSongs.map(song => ' ' + song.title)}`)
     return (
       <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 mt-4'>
         {sortedSongs.map((item) => (

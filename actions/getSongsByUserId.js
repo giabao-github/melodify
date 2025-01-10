@@ -2,14 +2,15 @@ import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 
 const getSongsByUserId = async () => {
+  const cookieStore = await cookies();
+
   const supabase = createServerComponentClient({
-    cookies: cookies
+    cookies: () => cookieStore
   });
 
   const { data: userData, error: userError } = await supabase.auth.getUser();
 
   if (userError) {
-    console.log('User error occurred: ', userError.message);
     return [];
   } 
 

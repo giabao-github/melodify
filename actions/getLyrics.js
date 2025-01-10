@@ -2,8 +2,10 @@ import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 
 const getLyrics = async (title, author) => {
+  const cookieStore = await cookies();
+
   const supabase = createServerComponentClient({
-    cookies: cookies
+    cookies: () => cookieStore
   });
 
   if (!title && !author) {

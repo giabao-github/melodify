@@ -1,26 +1,24 @@
 'use client';
 
-import Header from '@/components/Header';
+import Header from "../components/Header";
 import { Geologica } from 'next/font/google';
-import WaveSurfer from 'wavesurfer.js';
 import React, { useEffect, useRef, useState } from 'react';
 import { FaRocket, FaMusic } from 'react-icons/fa6';
 import toast from 'react-hot-toast';
 import { ScaleLoader } from 'react-spinners';
 import axios from 'axios';
+import { useRouter } from "next/navigation";
 
 const geologica = Geologica({ weight: ['400', '700'], subsets: ["latin", "cyrillic", "vietnamese", "greek"]});
 
 const Generate = ({}) => {
+  const router= useRouter();
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
-  const [duration, setDuration] = useState(20);
-  const [audioUrl, setAudioUrl] = useState('');
-  const waveformRef = useRef(null);
-  const audioPlayerRef = useRef(null);
-  const downloadLinkRef = useRef(null);
+  const [duration, setDuration] = useState(10);
+  const [music, setMusic] = useState('');
 
-  const handleGenerate = async () => {
+  const handleGenerate = async (description) => {
     if (!description.trim()) {
       toast.remove();
       toast.error('Please provide a description');
@@ -28,49 +26,25 @@ const Generate = ({}) => {
     }
 
     setLoading(true);
-    setAudioUrl(null);
 
     try {
-      const response = await axios.post("http://localhost:5000/api/generate-music", {
+      const response = await axios.post('http://localhost:8000/generate', {
         description,
         duration,
       });
-
-      if (response.data.success) {
-        const generatedAudioUrl = response.data.file_url;
-        if (generatedAudioUrl) {
-          setAudioUrl(generatedAudioUrl);
-        } else {
-          toast.remove();
-          toast.error("Music generation failed: missing file URL");
-        }
+      console.log("Response: ", response);
+      if (response.data.audio_file) {
+        setMusic(`http://localhost:8000/${response.data.audio_file}`);
+        toast.success('Music generated successfully');
       } else {
-        toast.remove();
-        toast.error("Music generation failed: " + (response.data.message || 'Unknown error'));
+        toast.error('Failed to generate music');
       }
     } catch (error) {
-      console.error("Error during music generation:", error);
-      toast.remove();
-      toast.error("An error occurred. Please try again.");
+      toast.error(`Error: ${error.message}`);
     } finally {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    if (audioUrl && waveformRef.current) {
-      const wavesurfer = WaveSurfer.create({
-        container: waveformRef.current,
-        waveColor: '#D2D8D7',
-        progressColor: '#00A2FF',
-        height: 128,
-        barWidth: 2,
-      });
-  
-      wavesurfer.load(audioUrl);
-    }
-  }, [audioUrl]);
-  
 
 
   return (
@@ -88,11 +62,18 @@ const Generate = ({}) => {
           >
             <span
               title='Generated Music'
-              className='flex flex-col justify-center items-center cursor-pointer'
+              className='flex flex-col justify-center items-center'
             >
-              <p className={`text-black font-normal mt-1 text-2xl md:text-xl sm:text-lg xs:hidden ${geologica.className}`}>
-                Generated Music will be shown here
-              </p>
+              {music ? (
+                <audio controls onError={(e) => console.error('Audio error:', e)}>
+                  <source src={music} type="audio/wav" />
+                  Your browser does not support the audio element.
+                </audio>
+              ) : (
+                <p className={`text-neutral-700 font-normal mt-1 text-2xl md:text-xl sm:text-lg xs:hidden ${geologica.className}`}>
+                  Generated Music will be shown here
+                </p>
+              )}
             </span>
           </form>
         </div>
@@ -116,16 +97,17 @@ const Generate = ({}) => {
             <div className='my-1'>
               <button
                 onClick={() => {
-                  if (description.length > 0)
+                  if (description.length > 0) {
                     setDescription('');
-                  else
+                  } else {
                     setDescription(document.querySelector('textarea').placeholder);
+                  }
                 }}
-                className='block absolute left-4 xxs:left-3 bottom-0 mr-[14px] my-2 px-2 py-[1px] rounded-[4px] bg-gradient-to-r from-primaryAccent via-white to-secondaryAccent text-black font-bold border border-solid border-black text-[0.65rem] xs:!text-[0.55rem] xxs:!text-[0.5rem]'
+                className='block absolute left-4 xxs:left-3 bottom-0 mr-[14px] my-2 px-2 py-[1px] rounded-[4px] bg-gradient-to-r from-primaryAccent via-white to-secondaryAccent text-black font-bold border border-solid border-black text-[0.65rem] xs:!text-[0.55rem] xxs:!text-[0.5rem] select-none'
               >
                 {description.length > 0 ? 'Clear' : 'Tab'}
               </button>
-              <p className='w-full px-4 xxs:px-3 pb-1 flex justify-end bg-gradient-to-r from-primaryAccent via-white to-secondaryAccent text-sm font-semibold text-black'>{`${description.length}/1000`}</p>
+              <p className='w-full px-4 xxs:px-3 pb-1 flex justify-end bg-gradient-to-r from-primaryAccent via-white to-secondaryAccent text-sm font-semibold text-black select-none'>{`${description.length}/1000`}</p>
             </div>
           </div>
         </div>
@@ -134,7 +116,7 @@ const Generate = ({}) => {
             <FaMusic className='text-xl mr-3 text-black' />
             <label
               htmlFor='duration'
-              className='font-bold text-lg text-black'
+              className='font-bold text-lg text-black select-none'
             >
               Music Duration:
             </label>
@@ -154,14 +136,14 @@ const Generate = ({}) => {
                 )`,
               }}
             />
-            <span className='font-bold text-lg text-black'>
+            <span className='font-bold text-lg text-black select-none'>
               {duration} seconds
             </span>
           </div>
         </div>
         <button
-          className='text-black mt-10 flex items-center bg-gradient-to-r from-primaryAccent via-white to-secondaryAccent hover:bg-gradient-to-l hover:from-primaryAccent hover:via-white hover:to-secondaryAccent text-light py-3 px-6 rounded-2xl shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-400 text-lg font-bold border-2 border-solid border-white 0.75xl:text-base md:text-lg transition-all ease-in-out duration-100'
-          onClick={handleGenerate}
+          className='text-black mt-10 flex items-center bg-gradient-to-r from-primaryAccent via-white to-secondaryAccent hover:bg-gradient-to-l hover:from-primaryAccent hover:via-white hover:to-secondaryAccent text-light py-3 px-6 rounded-2xl shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-400 text-lg font-bold border-2 border-solid border-white 0.75xl:text-base md:text-lg transition-all ease-in-out duration-100 select-none'
+          onClick={() => handleGenerate(description)}
         >
           Generate&nbsp;&nbsp;
           <FaRocket />
@@ -170,33 +152,6 @@ const Generate = ({}) => {
         {loading && (
           <div className='flex justify-center items-center mt-10'>
             <ScaleLoader color='#18FFFF' />
-          </div>
-        )}
-
-        {audioUrl && (
-          <div ref={audioPlayerRef} className='text-center mt-6'>
-            <h4 className='text-center mb-3'>AI Generated Music Below</h4>
-            <audio controls>
-            <source src={audioUrl} type="audio/wav" />
-              Your browser does not support the audio tag.
-            </audio>
-            <div className='row'>
-              <div className='col-sm-12'>
-                <div ref={waveformRef} id='waveform' className='waveform'></div>
-              </div>
-              <div className='col-sm-1 pt-3 d-none'>
-                <div className='text-end mt-4'>
-                  <a
-                    ref={downloadLinkRef}
-                    href={audioUrl}
-                    className='text-pink-600 text-2xl'
-                    download
-                  >
-                    <i className='fas fa-download'></i>
-                  </a>
-                </div>
-              </div>
-            </div>
           </div>
         )}
       </main>

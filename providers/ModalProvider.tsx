@@ -1,11 +1,11 @@
 "use client";
 
-import AuthModal from "@/components/AuthModal";
-import UploadModal from "@/components/UploadModal";
-import OptionsModal from "@/components/OptionsModal";
-import React, { Suspense, useEffect, useState } from "react";
-import useLyricsModal from "@/hooks/useLyricsModal";
-import LyricsModal from "@/components/LyricsModal";
+import AuthModal from "../app/components/AuthModal";
+import UploadModal from "../app/components/UploadModal";
+import OptionsModal from "../app/components/OptionsModal";
+import React, { useEffect, useState } from "react";
+import useLyricsModal from "../app/hooks/useLyricsModal";
+import LyricsModal from "../app/components/LyricsModal";
 
 
 const ModalProvider = () => {

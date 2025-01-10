@@ -1,5 +1,5 @@
-import getSongsByAuthor from "@/actions/getSongsByAuthor";
-import getSongsByTitle from "@/actions/getSongsByTitle";
+import getSongsByAuthor from "../../actions/getSongsByAuthor";
+import getSongsByTitle from "../../actions/getSongsByTitle";
 import Search from "./components/Search";
 
 export const revalidate = 0;

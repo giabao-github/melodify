@@ -3,8 +3,10 @@ import { cookies } from 'next/headers';
 import getSongs from './getSongs';
 
 const getSongsByTitle = async (title) => {
+  const cookieStore = await cookies();
+
   const supabase = createServerComponentClient({
-    cookies: cookies
+    cookies: () => cookieStore
   });
 
   if (!title) {

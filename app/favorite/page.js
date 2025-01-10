@@ -1,6 +1,6 @@
 import React from 'react';
-import getLikedSongs from '@/actions/getLikedSongs';
-import Header from '@/components/Header';
+import getLikedSongs from '../../actions/getLikedSongs';
+import Header from '../components/Header';
 import Image from 'next/image';
 import { RiPlayListFill } from "react-icons/ri";
 import FavoriteContent from './components/FavoriteContent';

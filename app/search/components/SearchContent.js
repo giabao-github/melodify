@@ -1,8 +1,8 @@
 "use client";
 
-import LikeButton from '@/components/LikeButton';
-import MediaItem from '@/components/MediaItem';
-import useOnPlay from '@/hooks/useOnPlay';
+import LikeButton from '../../components/LikeButton';
+import MediaItem from '../../components/MediaItem';
+import useOnPlay from '../../hooks/useOnPlay';
 import React from 'react';
 import { PiSmileySad } from "react-icons/pi";
 

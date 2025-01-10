@@ -2,8 +2,10 @@ import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 
 const getLikedSongs = async () => {
+  const cookieStore = await cookies();
+
   const supabase = createServerComponentClient({
-    cookies: cookies
+    cookies: () => cookieStore
   });
 
   const { data: { user } } = await supabase.auth.getUser();

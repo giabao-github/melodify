@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import Header from "@/components/Header";
-import SearchInput from "@/components/SearchInput";
+import Header from "../../components/Header";
+import SearchInput from "../../components/SearchInput";
 import SearchContent from "./SearchContent";
 import GenreFilter from "./GenreFilter";
 

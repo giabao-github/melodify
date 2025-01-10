@@ -1,22 +1,33 @@
-"use client"
+"use client";
 
-import { Geologica,  } from "next/font/google";
-import Box from "@/components/Box";
-import Link from "next/link";
-import Image from "next/image";
-import { redirect, useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from 'react';
+import { Geologica,  } from 'next/font/google';
+import { redirect, usePathname, useRouter } from 'next/navigation';
+import Box from '../app/components/Box';
+import Image from 'next/image';
+import ClientOnly from './components/ClientOnly';
 
 
-const geologica = Geologica({ subsets: ["latin", "cyrillic", "vietnamese", "greek"]});
+const geologica = Geologica({ subsets: ['latin', 'cyrillic', 'vietnamese', 'greek']});
 
-export default function Page404({ pageTitle, title, description }) {
+const Page404 = ({ pageTitle, title, description }) => {
+  const router = useRouter();
+  const pathname = usePathname();
+  const allowedPaths = useMemo(() => ['/', '/search', '/generate', '/favorite'], []);
+
+  useEffect(() => {
+    if (allowedPaths.includes(pathname)) {
+      window.location.reload();
+    }
+  });
+
   const handleRedirect = () => {
-    console.log("Redirecting to home...");
-    redirect('/');
+    window.location.replace('/');
   };
 
+
   return (
-    <html lang="en">
+    <ClientOnly>
       <body>
         <Box className={`h-full flex flex-col gap-y-20 items-center justify-center ${geologica.className}`}>
           <title>{pageTitle}</title>
@@ -34,20 +45,21 @@ export default function Page404({ pageTitle, title, description }) {
             <p className='text-neutral-400 text-xl'>
               {description}
             </p>
-            <p className='text-xl'>
+            <p className='text-xl flex flex-row'>
               Please return to the&nbsp;
-              <Link
-                href={'/'}
-                onClick={handleRedirect}
-                className='text-primaryAccent hover:underline'
+              <div
+                onClick={() => handleRedirect()}
+                className='text-primaryAccent hover:underline cursor-pointer'
               >
                 Melodify home page
-              </Link>
+              </div>
               .
             </p>
           </div>
         </Box>
       </body>
-    </html>
+    </ClientOnly>
   );
 }
+
+export default Page404;

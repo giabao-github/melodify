@@ -1,28 +1,48 @@
 "use client";
 
-import LikeButton from '@/components/LikeButton';
-import MediaItem from '@/components/MediaItem';
-import useOnPlay from '@/hooks/useOnPlay';
-import { useUser } from '@/hooks/useUser';
+import LikeButton from '../../components/LikeButton';
+import MediaItem from '../../components/MediaItem';
+import useOnPlay from '../../hooks/useOnPlay';
+import { useUser } from '../../hooks/useUser';
 import { useRouter } from 'next/navigation';
 import React, { useEffect } from 'react';
+import useOptionsModal from '../../hooks/useOptionsModal';
 
 const FavoriteContent = ({ songs }) => {
   const router =  useRouter();
   const { isLoading, user } = useUser();
+  const { onOpen, setTitle, setDescription } = useOptionsModal();
 
   const onPlay = useOnPlay(songs);
 
-  useEffect(() => {
-    if (!isLoading && !user) {
-      router.replace('/');
-    }
-  }, [isLoading, router, user]);
+  const handleLogin = () => {
+    setTitle('Choose an authentication option');
+    setDescription('Only authenticated users are allowed to create favorite playlists');
+    onOpen();
+  }
+
+  if (!isLoading && !user) {
+    return (
+      <div className='h-[63.58%] flex justify-center items-center'>
+        <div className='text-neutral-400 text-xl'>
+          <span
+            onClick={() => handleLogin()} 
+            className='cursor-pointer hover:underline text-button'
+          >
+            Log in
+          </span>
+          &nbsp;to listen to your favorite songs.
+        </div>
+      </div>
+    );
+  }
 
   if (songs.length === 0) {
     return (
-      <div className='mt-40 text-neutral-400 text-xl flex justify-center'>
-        No favorite songs.
+      <div className='h-[63.58%] flex justify-center items-center'>
+        <div className='text-neutral-400 text-xl'>
+          No favorite songs.
+        </div>
       </div>
     );
   }

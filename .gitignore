@@ -2,7 +2,7 @@
 
 private
 .env.local
-/app/.env
+.env
 .venv/
 
 # dependencies
