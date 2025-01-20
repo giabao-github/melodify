@@ -1,12 +1,9 @@
-import { Song } from "../../types";
-import usePlayer from "./usePlayer";
-import useAuthModal from './useAuthModal';
-import { useUser } from "./useUser";
+import { Song } from '../../types';
+import usePlayer from './usePlayer';
+
 
 const useOnPlay = (songs: Song[]) => {
   const player = usePlayer();
-  const authModal = useAuthModal();
-  const { user } = useUser();
 
   const onPlay = (id: string) => {
     player.setId(id);

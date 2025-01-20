@@ -18,7 +18,6 @@ const useSong = create<SongStore>((set) => {
 
   return {
     song: initialSongs,
-    sound: undefined,
     setSong: (value) => {
       set({ song: value });
       // Persist the song state to local storage
@@ -26,7 +25,6 @@ const useSong = create<SongStore>((set) => {
         localStorage.setItem('songs', JSON.stringify(value));
       }
     },
-    setSound: (sound) => {}
   };
 });
 

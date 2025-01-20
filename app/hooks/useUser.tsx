@@ -1,7 +1,8 @@
-import React, { useContext, createContext, useEffect, useState, useCallback } from 'react';
-import { Subscription, UserDetails } from '../../types';
+import { useContext, createContext, useEffect, useState, useCallback } from 'react';
 import { User } from '@supabase/auth-helpers-nextjs';
 import { useSessionContext, useUser as useSupaUser } from '@supabase/auth-helpers-react';
+
+import { Subscription, UserDetails } from '../../types';
 
 
 type UserContextType = {
@@ -34,53 +35,24 @@ export const MyUserContextProvider = (props: Props) => {
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const getUserDetails = useCallback(async (): Promise<{ data: UserDetails | null; error: string | null }> => {
-    if (!user) {
-      return { data: null, error: 'User not logged in' };
-    }
+  const getUserDetails = () => supabase
+    .from('users')
+    .select('*')
+    .single();
 
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .single();
-
-    if (error) {
-      setError(typeof error === 'string' ? error : error.message || 'Unknown error');
-      return { data: null, error: typeof error === 'string' ? error : error.message || 'Unknown error' };
-    }
-
-    return { data: data.length > 0 ? (data[0] as UserDetails) : null, error: null };
-  }, [supabase, user]);
-
-
-  const getSubscription = useCallback(async (): Promise<{ data: Subscription | null; error: string | null }> => {
-    const { data, error } = await supabase
+  const getSubscription = () => supabase
       .from('subscriptions')
       .select('*, prices(*, products(*))')
       .in('status', ['trialing', 'active'])
       .single();
 
-    if (error) {
-      setError(typeof error === 'string' ? error : error.message || 'Unknown error');
-      return { data: null, error: typeof error === 'string' ? error : error.message || 'Unknown error' };
-    }
-
-    return { data: data.length > 0 ? (data[0] as Subscription) : null, error: null };
-  }, [supabase]);
-
-
   useEffect(() => {
-    let isMounted = true;
     if (user && !isLoadingData && !userDetails && !subscription) {
       setError(null); 
       setIsLoadingData(true);
 
       Promise.allSettled([getUserDetails(), getSubscription()]).then(
         (results) => {
-          if (!isMounted) {
-            return;
-          }
-
           const userDetailsPromise = results[0];
           const subscriptionPromise = results[1];
 
@@ -88,7 +60,7 @@ export const MyUserContextProvider = (props: Props) => {
           if (userDetailsPromise.status === 'fulfilled') {
             setUserDetails(userDetailsPromise.value.data as UserDetails);
           } else {
-            // console.error("Error fetching user details:", userDetailsPromise.reason);
+            console.error("Error fetching user details:", userDetailsPromise.reason);
             setError(userDetailsPromise.reason);
           }
 
@@ -96,7 +68,7 @@ export const MyUserContextProvider = (props: Props) => {
           if (subscriptionPromise.status === 'fulfilled') {
             setSubscription(subscriptionPromise.value.data as Subscription);
           } else {
-            // console.error("Error fetching subscription:", subscriptionPromise.reason);
+            console.error("Error fetching subscription:", subscriptionPromise.reason);
             setError(subscriptionPromise.reason);
           }
 
@@ -107,11 +79,7 @@ export const MyUserContextProvider = (props: Props) => {
       setUserDetails(null);
       setSubscription(null);
     }
-
-    return () => {
-      isMounted = false;
-    };
-  }, [user, isLoadingUser, isLoadingData, userDetails, subscription, getUserDetails, getSubscription]);
+  }, [user, isLoadingUser]);
 
   const value = {
     accessToken,

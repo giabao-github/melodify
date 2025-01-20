@@ -7,7 +7,7 @@
     ],
     "allowJs": true,
     "skipLibCheck": true,
-    "strict": false,
+    "strict": true,
     "noEmit": true,
     "incremental": true,
     "module": "esnext",
@@ -29,7 +29,7 @@
     ".next/types/**/*.ts",
     "**/*.ts",
     "**/*.tsx"
-  ],
+, "app/libs/stripe.ts", "app/search/components/Search.js", "app/search/components/GenreFilter.js", "app/components/ProgressBar.js", "app/layout.jtsx"  ],
   "exclude": [
     "node_modules"
   ]
