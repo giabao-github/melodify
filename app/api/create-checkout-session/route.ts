@@ -1,13 +1,13 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 
 import { stripe } from '../../libs/stripe';
 import { getURL } from '../../libs/helpers';
 import { createOrRetrieveCustomer } from '../../libs/supabaseAdmin';
 
 
-export async function POST(request) {
+export async function POST(request: Request) {
   const { price, quantity = 1, metadata = {} } = await request.json();
 
   try {
@@ -43,7 +43,6 @@ export async function POST(request) {
       mode: 'subscription',
       allow_promotion_codes: true,
       subscription_data: {
-        trial_from_plan: true,
         metadata
       },
       success_url: `${getURL()}/account`,
@@ -51,7 +50,7 @@ export async function POST(request) {
     });
 
     return NextResponse.json({ sessionId: session.id });
-  } catch (error) {
+  } catch (error: any) {
     console.log('Error: ' + error.message);
     return new NextResponse('Internal Server Error', { status: 500 });
   }

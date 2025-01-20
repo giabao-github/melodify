@@ -2,13 +2,14 @@
 
 import { PiPlaylistBold } from 'react-icons/pi';
 import { GoPlus } from 'react-icons/go';
+
+import { Song } from '../../types';
 import { useUser } from '../hooks/useUser';
 import useUploadModal from '../hooks/useUploadModal';
 import useOptionsModal from '../hooks/useOptionsModal';
+import useSubscribeModal from '../hooks/useSubscribeModal';
 import MediaItem from './MediaItem';
-import useSong from '../hooks/useSong';
 import useOnPlay from '../hooks/useOnPlay';
-import { Song } from '../../types';
 
 
 interface LibraryProps {
@@ -16,9 +17,10 @@ interface LibraryProps {
 }
 
 const Library: React.FC<LibraryProps> = ({ songs }) => {
+  const subscribeModal = useSubscribeModal();
   const optionsModal = useOptionsModal();
   const uploadModal = useUploadModal();
-  const { user } = useUser();
+  const { user, subscription } = useUser();
 
   const onPlay = useOnPlay(songs);
 
@@ -27,6 +29,10 @@ const Library: React.FC<LibraryProps> = ({ songs }) => {
       optionsModal.setTitle('Login required');
       optionsModal.setDescription('You need to login first in order to create your own playlists');
       return optionsModal.onOpen();
+    }
+
+    if (!subscription) {
+      return subscribeModal.onOpen();
     }
 
     return uploadModal.onOpen();

@@ -25,7 +25,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children, songs }) => {
   const player = usePlayer();
 
   // Define allowed paths
-  const allowedPaths = useMemo(() => ['/', '/search', '/generate', '/favorite'], []);
+  const allowedPaths = useMemo(() => ['/', '/search', '/generate', '/favorite', '/account'], []);
 
   const routes = useMemo(() => [
     {

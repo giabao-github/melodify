@@ -54,6 +54,7 @@ const Header: React.FC<HeaderProps> = ({children, className}) => {
 
   const handleLogout = async () => {
     const { error } = await supabaseClient.auth.signOut();
+    router.refresh();
 
     if (error) {
       toast.remove();
@@ -61,10 +62,8 @@ const Header: React.FC<HeaderProps> = ({children, className}) => {
     } else {
       setUserState(false);
       toast.remove();
-      toast.success('Logged out!');
+      toast.success('Logged out');
     }
-
-    router.refresh();
   }
 
   useEffect(() => {

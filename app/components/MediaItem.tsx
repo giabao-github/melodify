@@ -2,11 +2,12 @@
 
 import useLoadImage from '../hooks/useLoadImage';
 import Image from 'next/image';
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { GoKebabHorizontal } from 'react-icons/go';
 import { PiPlusCircleBold } from 'react-icons/pi';
 import { IoRadio, IoPersonOutline, IoShareOutline, IoRemoveCircleOutline } from 'react-icons/io5';
 import { Song } from '../../types';
+import usePlayer from '../hooks/usePlayer';
 
 
 interface MediaItemProps {
@@ -16,6 +17,7 @@ interface MediaItemProps {
 }
 
 const MediaItem: React.FC<MediaItemProps> = ({ data, onClick, type }) => {
+  const player = usePlayer();
   const imageUrl = useLoadImage(data);
   const [showOptions, setShowOptions] = useState(false);
   const optionsRef = useRef<HTMLDivElement | null>(null);
@@ -26,6 +28,7 @@ const MediaItem: React.FC<MediaItemProps> = ({ data, onClick, type }) => {
     if (onClick) {
       return onClick(data.id);
     }
+    return player.setId(data.id);
   }
 
   const handleOptionClick = (event: React.MouseEvent<SVGElement>) => {

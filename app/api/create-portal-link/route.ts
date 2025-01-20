@@ -1,13 +1,13 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 
 import { stripe } from '../../libs/stripe';
 import { getURL } from '../../libs/helpers';
 import { createOrRetrieveCustomer } from '../../libs/supabaseAdmin';
 
 
-export async function POST(request) {
+export async function POST() {
   try {
     const supabase = createRouteHandlerClient({
       cookies
@@ -20,8 +20,8 @@ export async function POST(request) {
     }
 
     const customer = await createOrRetrieveCustomer({
-      uuid: user?.id || '',
-      email: user?.email || ''
+      uuid: user.id || '',
+      email: user.email || ''
     });
 
     if (!customer) {
@@ -34,7 +34,7 @@ export async function POST(request) {
     });
 
     return NextResponse.json({ url });
-  } catch (error) {
+  } catch (error: any) {
     console.log('Error: ' + error.message);
     return new NextResponse('Internal Server Error', { status: 500 });
   }
