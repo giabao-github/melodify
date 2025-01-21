@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import useLyricsModal from '../hooks/useLyricsModal';
 import InteractiveModal from './InteractiveModal';
 import { Song } from '../../types';

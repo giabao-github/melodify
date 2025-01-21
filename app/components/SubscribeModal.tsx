@@ -116,7 +116,7 @@ const SubscribeModal: React.FC<SubscribeModalProps> = ({ products }) => {
 
   return (
     <Modal
-      title='Only for premium accounts'
+      title='This feature is exclusive to premium accounts'
       description='Enjoy music unlimited with Melodify Premium'
       large
       isOpen={subscribeModal.isOpen}

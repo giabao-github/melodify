@@ -22,7 +22,7 @@ const InteractiveModal: React.FC<InteractiveModalProps> = ({ isOpen, onChange, t
 
   return (
     <div
-      className={`fixed drop-shadow-md border border-primaryAccent top-[50%] left-[50%] max-h-full md:h-[83vh] w-full md:w-[85vw] md:max-w-[650px] translate-x-[-50%] translate-y-[-56%] rounded-md bg-neutral-700 p-[25px] z-[1000]`}
+      className={`fixed drop-shadow-md border border-primaryAccent top-[50%] left-[50%] max-h-full md:h-[83vh] w-full md:w-[85vw] md:max-w-[650px] translate-x-[-50%] translate-y-[-56%] rounded-md bg-neutral-700 p-[25px] z-20`}
     >
       <div className={`flex justify-center items-center text-3xl text-center font-black mb-4 mx-auto bg-gradient-to-r from-purple-500 to-blue-500 px-5 py-2 rounded-full shadow-md max-w-fit uppercase ${bungee.className}`}>
         {title}

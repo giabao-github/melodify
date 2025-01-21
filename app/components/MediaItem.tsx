@@ -12,11 +12,12 @@ import usePlayer from '../hooks/usePlayer';
 
 interface MediaItemProps {
   data: Song;
+  activeSong?: Song;
   onClick?: (id: string) => void;
   type?: string;
 }
 
-const MediaItem: React.FC<MediaItemProps> = ({ data, onClick, type }) => {
+const MediaItem: React.FC<MediaItemProps> = ({ data, activeSong, onClick, type }) => {
   const player = usePlayer();
   const imageUrl = useLoadImage(data);
   const [showOptions, setShowOptions] = useState(false);
@@ -79,7 +80,7 @@ const MediaItem: React.FC<MediaItemProps> = ({ data, onClick, type }) => {
     <div>
       <div
         onClick={handleClick}
-        className='flex items-center gap-x-3 cursor-pointer hover:bg-gradient-to-r from-purple-800 to-purple-500 w-full h-full px-3 py-2 rounded-md select-none'
+        className={`flex items-center gap-x-3 cursor-pointer ${activeSong && activeSong.id === data.id ? 'bg-gradient-to-r from-purple-800 to-purple-500' : ''} hover:bg-gradient-to-r from-purple-800 to-purple-500 w-full h-full px-3 py-2 rounded-md select-none`}
       >
         <div className='relative rounded-md min-h-[48px] min-w-[48px] overflow-hidden'>
           <Image
@@ -165,6 +166,21 @@ const MediaItem: React.FC<MediaItemProps> = ({ data, onClick, type }) => {
                   {data.author.length > 32 ? data.author.slice(0, 32) + '...' : data.author}
                 </p>
               </div>
+            </div>
+          </div>
+        )}
+        {type === 'playlist' && (
+          <div
+            title={`${data.title} - ${data.author}`} 
+            className='flex flex-col gap-y-1 overflow-hidden'
+          >
+            <p className='text-white text-base font-medium truncate'>
+              {data.title.length > 150 ? data.title.slice(0, 150) + '...' : data.title}
+            </p>
+            <div className={`flex justify-between min-w-[200px]`}>
+              <p className='text-neutral-300 text-sm font-medium truncate'>
+                {data.author.length > 150 ? data.author.slice(0, 150) + '...' : data.author}
+              </p>
             </div>
           </div>
         )}

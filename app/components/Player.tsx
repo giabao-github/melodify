@@ -6,10 +6,12 @@ import usePlayer from '../hooks/usePlayer';
 import PlayerContent from './PlayerContent';
 import ProgressBar from './ProgressBar';
 import useProgressBar from '../hooks/useProgressBar';
+import useGetSongs from '../hooks/useGetSongs';
 
 const Player = () => {
   const player = usePlayer();
   const { song } = useGetSongById(player.activeId);
+  const { songs } = useGetSongs();
   const { sound } = useProgressBar();
   const songUrl = useLoadSongUrl(song!);
 
@@ -25,6 +27,7 @@ const Player = () => {
         <PlayerContent
           key={songUrl}
           song={song}
+          allSongs={songs}
           songUrl={songUrl}
         />
       </div>

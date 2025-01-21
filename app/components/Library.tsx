@@ -10,6 +10,8 @@ import useOptionsModal from '../hooks/useOptionsModal';
 import useSubscribeModal from '../hooks/useSubscribeModal';
 import MediaItem from './MediaItem';
 import useOnPlay from '../hooks/useOnPlay';
+import usePlaylistModal from '../hooks/usePlaylistModal';
+import useLyricsModal from '../hooks/useLyricsModal';
 
 
 interface LibraryProps {
@@ -18,6 +20,8 @@ interface LibraryProps {
 
 const Library: React.FC<LibraryProps> = ({ songs }) => {
   const subscribeModal = useSubscribeModal();
+  const lyricsModal = useLyricsModal();
+  const playlistModal = usePlaylistModal();
   const optionsModal = useOptionsModal();
   const uploadModal = useUploadModal();
   const { user, subscription } = useUser();
@@ -28,10 +32,14 @@ const Library: React.FC<LibraryProps> = ({ songs }) => {
     if (!user) {
       optionsModal.setTitle('Login required');
       optionsModal.setDescription('You need to login first in order to create your own playlists');
+      lyricsModal.onClose();
+      playlistModal.onClose();
       return optionsModal.onOpen();
     }
 
     if (!subscription) {
+      lyricsModal.onClose();
+      playlistModal.onClose();
       return subscribeModal.onOpen();
     }
 

@@ -8,6 +8,8 @@ import useLyricsModal from '../hooks/useLyricsModal';
 import LyricsModal from '../components/LyricsModal';
 import SubscribeModal from '../components/SubscribeModal';
 import { ProductWithPrice } from '../../types';
+import usePlayer from '../hooks/usePlayer';
+import PlaylistModal from '../components/PlaylistModal';
 
 
 interface ModalProviderProps {
@@ -17,6 +19,8 @@ interface ModalProviderProps {
 const ModalProvider: React.FC<ModalProviderProps> = ({ products }) => {
   const [isMounted, setIsMounted] = useState(false);
   const { song } = useLyricsModal();
+  const { songs, activeId } = usePlayer();
+  const activeSong = songs.find((song) => song.id === activeId);
 
   useEffect(() => {
     setIsMounted(true); 
@@ -32,6 +36,7 @@ const ModalProvider: React.FC<ModalProviderProps> = ({ products }) => {
       <AuthModal />
       <UploadModal />
       <LyricsModal song={song} />
+      <PlaylistModal songs={songs} activeSong={activeSong} />
       <SubscribeModal products={products} />
     </>
   );

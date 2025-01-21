@@ -8,6 +8,8 @@ import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa, ViewForgottenPassword, ViewMagicLink, ViewSignIn, ViewSignUp, ViewType, ViewUpdatePassword, ViewVerifyOtp } from '@supabase/auth-ui-shared';
 import useAuthModal from '../hooks/useAuthModal';
 import '../css/AuthModal.css';
+import useLyricsModal from '../hooks/useLyricsModal';
+import usePlaylistModal from '../hooks/usePlaylistModal';
 
 
 const AuthModal = () => {
@@ -15,6 +17,8 @@ const AuthModal = () => {
   const router = useRouter();
   const { session } = useSessionContext();
   const { onClose, isOpen, buttonClick } = useAuthModal();
+  const lyricsModal = useLyricsModal();
+  const playlistModal = usePlaylistModal();
   const [viewType, setViewType] = useState<ViewSignIn | ViewSignUp | ViewMagicLink | ViewForgottenPassword | ViewUpdatePassword | ViewVerifyOtp>('sign_in');
   const [authView, setAuthView] = useState(viewType);
   const [modalTitle, setModalTitle] = useState('Welcome back');
@@ -53,6 +57,13 @@ const AuthModal = () => {
     }
     setAuthView(viewType);
   }, [session, router, onClose, viewType]);
+
+  useEffect(() => {
+    if (isOpen) {
+      lyricsModal.onClose();
+      playlistModal.onClose();
+    }
+  }, [isOpen]);
 
   const onChange = (open: boolean) => {
     if (!open) {

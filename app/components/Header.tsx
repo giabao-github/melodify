@@ -67,7 +67,7 @@ const Header: React.FC<HeaderProps> = ({children, className}) => {
   }
 
   useEffect(() => {
-    if (userDetails) {
+    if (userDetails?.full_name) {
       setUserState(true);
       if (!hasShownWelcomeToast) {
         toast.remove();

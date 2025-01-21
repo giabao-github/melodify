@@ -1,45 +1,47 @@
-'use client';
+"use client";
 
-import React, { useCallback, useEffect, useState } from 'react';
-import MediaItem from './MediaItem';
-import LikeButton from './LikeButton';
+import { useCallback, useEffect, useState } from 'react';
+import useSound from 'use-sound';
+import toast from 'react-hot-toast';
 import { FaPlay, FaPause, FaForwardStep, FaBackwardStep, FaVolumeHigh, FaVolumeXmark, FaShuffle, FaRepeat, FaClock, FaDownload } from 'react-icons/fa6';
 import { IoRocket } from 'react-icons/io5';
 import { ImHeadphones } from 'react-icons/im';
 import { MdLyrics } from 'react-icons/md';
+import { useSupabaseClient } from '@supabase/auth-helpers-react';
+import { Song } from '../../types';
+import MediaItem from './MediaItem';
+import LikeButton from './LikeButton';
 import Slider from './Slider';
 import usePlayer from '../hooks/usePlayer';
-import useSound from 'use-sound';
+import { useUser } from '../hooks/useUser';
 import useProgressBar from '../hooks/useProgressBar';
 import usePlayerSettings from '../hooks/usePlayerSettings';
 import useLyricsModal from '../hooks/useLyricsModal';
-import { useUser } from '../hooks/useUser';
-import { useSupabaseClient } from '@supabase/auth-helpers-react';
-import toast from 'react-hot-toast';
-import { Song } from '../../types';
+import usePlaylistModal from '../hooks/usePlaylistModal';
+import useSubscribeModal from '../hooks/useSubscribeModal';
 
 
 interface PlayerContentProps {
   song: Song;
+  allSongs: Song[];
   songUrl: string;
 }
 
-const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
+const PlayerContent: React.FC<PlayerContentProps> = ({ song, allSongs, songUrl }) => {
   const player = usePlayer();
+  const subscribeModal = useSubscribeModal();
+  const playlistModal = usePlaylistModal();
   const [previousVolume, setPreviousVolume] = useState(0.5);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [isPlayed, setIsPlayed] = useState(false);
-  const [playedSongs, setPlayedSongs] = useState<Song[]>([]);
   const [playedTime, setPlayedTime] = useState(0);
   const [trackedTime, setTrackedTime] = useState(0);
-  const [shuffledIds, setShuffledIds] = useState<string[]>([]);
-  const [playHistory, setPlayHistory] = useState<string[]>([]);
   const { progressBarDuration, playedDuration, setProgressBarDuration, setPlayedDuration, setSound } = useProgressBar();
   const { volume, loop, shuffle, speed, setVolume, setLoop, setShuffle, setSpeed } = usePlayerSettings();
   const { isOpen, setSong, onOpen, onClose } = useLyricsModal();
 
-  const { user } = useUser();
+  const { user, subscription } = useUser();
   const supabaseClient = useSupabaseClient();
 
   const Icon = isPlaying ? FaPause : FaPlay;
@@ -60,8 +62,6 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
       onload: () => {
         setSong(song);
         setPlayedDuration(0);
-        // setPlayedSongs([...playedSongs, song]);
-        // console.log(playedSongs)
       },
       format: ['flac', 'mp3']
     },
@@ -69,7 +69,7 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
 
 
   const updatePlayCount = useCallback(async () => {
-    if (playedTime / song?.duration >= 0.01) {
+    if (playedTime / song?.duration >= 0.8) {
       try {
         // Fetch the current play_count
           const { data, error: fetchError } = await supabaseClient
@@ -123,25 +123,33 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
       .sort((a, b) => a.sort - b.sort)
       .map(({ id }) => id);
   };
-  
+
+
   const onPlayNext = useCallback(() => {
+    setPlayedDuration(0);
+
     if (user) {
       updatePlayCount();
     }
 
     if (shuffle) {
-      const currentIndex = shuffledIds.findIndex((id) => id === player.activeId);
-      const nextSong = shuffledIds[currentIndex + 1];
-  
+      const currentIndex = player.shuffledIds.findIndex((id) => id === player.activeId);
+      if (currentIndex === -1) {
+        console.error("Current song ID not found in shuffled list.");
+        return;
+      }
+
+      const nextSong = player.shuffledIds[currentIndex + 1];
+
       if (nextSong) {
         player.setId(nextSong);
-        setPlayHistory((prev) => [...prev, nextSong]);
+        player.setPlayedIds([...player.playedIds, nextSong]);
       } else {
         // Reshuffle when all songs have been played
         const reshuffled = shuffleArray(player.ids);
-        setShuffledIds(reshuffled);
+        player.setShuffledIds(reshuffled);
         player.setId(reshuffled[0]);
-        setPlayHistory([reshuffled[0]]);
+        player.setPlayedIds([reshuffled[0]]);
       }
     } else {
       const currentIds = player.ids;
@@ -154,25 +162,27 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
       player.setId(nextSong);
   
       // Update play history for non-shuffle mode
-      setPlayHistory((prev) => [...prev, nextSong]);
+      player.setPlayedIds([...player.playedIds, nextSong]);
     }
-  }, [player, shuffle, shuffledIds, updatePlayCount, user]);
+  }, [player, setPlayedDuration, shuffle, updatePlayCount, user]);
 
 
   const onPlayPrevious = useCallback(() => {
+    setPlayedDuration(0);
+
     if (user) {
       updatePlayCount();
     }
 
     if (shuffle) {
-      if (playHistory.length > 1) {
-        const updatedHistory = [...playHistory];
-        updatedHistory.pop(); // Remove the current song
+      if (player.playedIds.length > 1) {
+        const updatedHistory = [...player.playedIds];
+        updatedHistory.pop();
         const previousSong = updatedHistory[updatedHistory.length - 1];
-        setPlayHistory(updatedHistory); // Update play history
-        player.setId(previousSong); // Play the previous song
-      } else if (playHistory.length === 1) {
-        player.setId(playHistory[0]);
+        player.setPlayedIds(updatedHistory);
+        player.setId(previousSong);
+      } else if (player.playedIds.length === 1) {
+        player.setId(player.playedIds[0]);
       }
     } else {
       const currentIds = player.ids;
@@ -185,9 +195,11 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
       player.setId(previousSong);
   
       // Update play history for non-shuffle mode
-      setPlayHistory((prev) => [...prev, previousSong]);
+      const updatedHistory = [...player.playedIds];
+      updatedHistory.pop();
+      player.setPlayedIds(updatedHistory);
     }
-  }, [user, shuffle, updatePlayCount, playHistory, player]);
+  }, [setPlayedDuration, user, shuffle, updatePlayCount, player]);
 
 
   const handlePlay = () => {
@@ -198,27 +210,32 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
     }
   }
 
+  const handleShowPlaylist = () => {
+    if (playlistModal.isOpen) {
+      return playlistModal.onClose();
+    }
+    return playlistModal.onOpen();
+  }
+
   const toggleLoop = () => {
     if (!loop) {
       setShuffle(false);
+      player.setShuffledIds([]);
+      player.setPlayedIds([]);
     }
     setLoop(!loop);
   }
 
   const toggleShuffle = () => {
     if (!shuffle) {
-      const shuffled = shuffleArray(player.ids);
-      setShuffledIds(shuffled);
       setLoop(false);
-      if (player.activeId) {
-        setPlayHistory([player.activeId]);
-        player.setId(shuffled[0]);
-      } else {
-        setPlayHistory([]);
-      }
+      const shuffled = shuffleArray(player.ids);
+      player.setShuffledIds(shuffled);
+      player.setPlayedIds([shuffled[0]]);
+      player.setId(shuffled[0]);
     } else {
-      setShuffledIds([]);
-      setPlayHistory([]);
+      player.setShuffledIds([]);
+      player.setPlayedIds([]);
     }
     setShuffle(!shuffle);
   }
@@ -245,6 +262,11 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
   }
 
   const handleShowLyrics = () => {
+    if (!subscription) {
+      onClose();
+      playlistModal.onClose();
+      return subscribeModal.onOpen();
+    }
     if (isOpen) {
       return onClose();
     }
@@ -252,44 +274,50 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
   }
 
   const handleDownload = async () => {
-    if (!songUrl) {
-      toast.remove();
-      toast.error('This song is not support download yet');
-      return;
-    }
-  
-    try {
-      toast.remove();
-      toast.success(`Downloading ${song.title}...`);
-      const response = await fetch(songUrl, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/octet-stream',
-        },
-      });
-  
-      if (!response.ok) {
+    if (!subscription) {
+      onClose();
+      playlistModal.onClose();
+      subscribeModal.onOpen();
+    } else {
+      if (!songUrl) {
         toast.remove();
-        toast.error('Internet connection issue');
-        throw new Error('Network response was not ok');
+        toast.error('This song is not support download yet');
+        return;
       }
+    
+      try {
+        toast.remove();
+        toast.success(`Downloading ${song.title}...`);
+        const response = await fetch(songUrl, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/octet-stream',
+          },
+        });
+    
+        if (!response.ok) {
+          toast.remove();
+          toast.error('Internet connection issue');
+          throw new Error('Network response was not ok');
+        }
+    
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `${song.title} - ${song.author}.flac`);
+    
+        document.body.appendChild(link);
+        link.click();
+        link.parentNode?.removeChild(link);
   
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `${song.title} - ${song.author}.flac`);
-  
-      document.body.appendChild(link);
-      link.click();
-      link.parentNode?.removeChild(link);
-
-    } catch (error) {
-      console.error('Error downloading the file:', error);
-      toast.remove();
-      toast.error('Failed to download the song');
+      } catch (error) {
+        console.error('Error downloading the file:', error);
+        toast.remove();
+        toast.error('Failed to download the song');
+      }
     }
-  };
+  }
 
   const formatTime = (seconds: number) => {
     seconds = Math.max(seconds, 0);
@@ -332,7 +360,6 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
   useEffect(() => {
     sound?.play();
     setIsPlayed(true);
-    // console.log(`ids: ${player.ids}, active id: ${song.id}`)
     return () => {
       sound?.unload();
     }
@@ -350,12 +377,6 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
       setProgressBarDuration(sound.duration());
     }
   }, [loop, setLoop, setSound, sound, playedDuration, setProgressBarDuration]);
-
-  useEffect(() => {
-    if (!shuffle) {
-      setShuffledIds([]);
-    }
-  }, [shuffle]);
 
   useEffect(() => {
     const onEndCallback = async () => {
@@ -418,10 +439,12 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
   }, [isPlayed, progressBarDuration, setProgressBarDuration, sound]);
 
   useEffect(() => {
-    console.log(shuffle ? 'shuffle' : 'no shuffle')
-    console.log('shuffled list', shuffledIds)
-    console.log('history', playHistory)
-  }, [playHistory, shuffle, shuffledIds])
+    const ids = player.shuffledIds.length > 0 ? player.shuffledIds : player.ids;
+    const playlist = ids
+      .map((id) => allSongs?.find((song) => song.id === id))
+      .filter((song): song is Song => song !== undefined);
+    player.setSongs(playlist);
+  }, [player.shuffledIds]);
 
 
   return (
@@ -429,7 +452,9 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
       <div className='flex w-full justify-start items-center'>
         <div className='flex items-center gap-x-4 ml-2'>
           <LikeButton songId={song.id} />
-          <MediaItem data={song} type='player' />
+          <div onClick={handleShowPlaylist}>
+            <MediaItem data={song} type='player' />
+          </div>
         </div>
       </div>
 
@@ -506,6 +531,7 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
           x{speed}
         </button>
         <button
+          title='Show lyrics. Exclusive to Melodify Premium!'
           onClick={handleShowLyrics}
           className='flex justify-center items-center text-lg font-bold text-white bg-gradient-to-r from-purple-500 to-blue-500 hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 px-3 py-1 rounded-full shadow-md transition-all duration-1000 ease-in-out'
         >
@@ -513,12 +539,13 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
             className='cursor-pointer'
             size={24}
           />&nbsp;
-          Show lyrics
+          {`${subscription ? 'Show lyrics' : 'Show lyrics 🔒'}`}
         </button>
       </div>
 
       <div className='hidden h-full w-full max-w-[400px] gap-x-0 md:flex justify-between items-center pl-[14px]'>
         <button
+          title='Download song. Exclusive to Melodify Premium!'
           onClick={handleDownload}
           className='flex justify-center items-center text-lg font-bold text-white bg-gradient-to-r from-purple-500 to-blue-500 hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 px-3 py-1 rounded-full shadow-md transition-all duration-1000 ease-in-out'
         >
@@ -526,7 +553,7 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
             className='cursor-pointer'
             size={20}
           />&nbsp;
-          Download
+          {`${subscription ? 'Download' : 'Download 🔒'}`}
         </button>
         <div className='hidden md:flex items-center gap-x-2 w-[120px] pr-4'>
           <VolumeIcon

@@ -24,6 +24,8 @@ const SongItem: React.FC<SongItemProps> = ({ data, onClick, onAdd }) => {
 
   const handleAddToPlaylist = () => {
     if (!user) {
+      optionsModal.setTitle('Login required');
+      optionsModal.setDescription('You need to login first in order to create your own library');
       return optionsModal.onOpen();
     }
     onAdd(data);
