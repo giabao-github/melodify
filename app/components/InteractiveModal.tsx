@@ -1,6 +1,7 @@
 import { League_Spartan , Bungee_Inline, Geologica } from 'next/font/google';
 import React from 'react';
 import { IoCloseCircle } from "react-icons/io5";
+import usePlaylistModal from '../hooks/usePlaylistModal';
 
 
 const spartan = League_Spartan({ weight: '400', subsets: ["latin", "vietnamese"]});
@@ -8,6 +9,7 @@ const geologica = Geologica({ subsets: ["latin", "cyrillic", "vietnamese", "gree
 const bungee = Bungee_Inline({ weight: '400' ,subsets: ["latin", "vietnamese"]});
 
 interface InteractiveModalProps {
+  type?: string;
   isOpen: boolean;
   onChange: (isOpen: boolean) => void;
   title: string;
@@ -15,14 +17,16 @@ interface InteractiveModalProps {
   children: React.ReactNode;
 }
 
-const InteractiveModal: React.FC<InteractiveModalProps> = ({ isOpen, onChange, title, description, children }) => {
+const InteractiveModal: React.FC<InteractiveModalProps> = ({ type, isOpen, onChange, title, description, children }) => {
+  const playlistModal = usePlaylistModal();
+
   if (!isOpen) {
     return null;
   }
 
   return (
     <div
-      className={`fixed drop-shadow-md border border-primaryAccent top-[50%] left-[50%] max-h-full md:h-[83vh] w-full md:w-[85vw] md:max-w-[650px] translate-x-[-50%] translate-y-[-56%] rounded-md bg-neutral-700 p-[25px] z-20`}
+      className={`fixed ${type === 'lyrics' && playlistModal.isOpen ? 'ml-28' : ''} drop-shadow-md border border-primaryAccent top-[50%] left-[50%] max-h-full md:h-[83vh] w-full md:w-[85vw] md:max-w-[650px] translate-x-[-50%] translate-y-[-56%] rounded-md bg-neutral-700 p-[25px] z-20`}
     >
       <div className={`flex justify-center items-center text-3xl text-center font-black mb-4 mx-auto bg-gradient-to-r from-purple-500 to-blue-500 px-5 py-2 rounded-full shadow-md max-w-fit uppercase ${bungee.className}`}>
         {title}

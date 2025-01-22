@@ -77,7 +77,7 @@ const SubscribeModal: React.FC<SubscribeModalProps> = ({ products }) => {
 
   if (products.length) {
     content = (
-      <div className='py-4 flex items-center justify-center'>
+      <div className='py-4 flex flex-col gap-y-12 items-center justify-center'>
         {products.map((product) => {
           if (!product.prices?.length) {
             return (
@@ -87,14 +87,15 @@ const SubscribeModal: React.FC<SubscribeModalProps> = ({ products }) => {
             );
           }
           return product.prices.map((price) => (
-            <Button 
-              key={price.id}
-              onClick={() => handleCheckout(price)}
-              disabled={isLoading || price.id === priceIdLoading}
-              className='w-[80%]'
-            >
-              {`Subscribe Melodify Premium for ${formatPrice(price)} / ${price.interval}`}
-            </Button>
+            <div key={price.id} className='flex justify-center items-center w-full'>
+              <Button 
+                onClick={() => handleCheckout(price)}
+                disabled={isLoading || price.id === priceIdLoading}
+                className='w-[80%]'
+              >
+                {`Subscribe ${product.name} for ${formatPrice(price)} / ${price.interval}`}
+              </Button>
+            </div>
           ))
         })}
       </div>
@@ -116,8 +117,8 @@ const SubscribeModal: React.FC<SubscribeModalProps> = ({ products }) => {
 
   return (
     <Modal
-      title='This feature is exclusive to premium accounts'
-      description='Enjoy music unlimited with Melodify Premium'
+      title='This feature is exclusive to subscribed accounts'
+      description='Enjoy music unlimited with Melodify Premium and Melodify Ultra'
       large
       isOpen={subscribeModal.isOpen}
       onChange={onChange}

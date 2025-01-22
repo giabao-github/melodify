@@ -52,7 +52,7 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, allSongs, songUrl }
     songUrl,
     {
       volume: volume,
-      playbackRate: 1,
+      playbackRate: speed,
       onplay: () => {
         setIsPlaying(true);
       },
@@ -374,7 +374,7 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, allSongs, songUrl }
     setCurrentTime(playedDuration);
 
     if (sound && typeof sound.duration === 'function') {
-      setProgressBarDuration(sound.duration());
+      setProgressBarDuration(Math.floor(sound.duration()));
     }
   }, [loop, setLoop, setSound, sound, playedDuration, setProgressBarDuration]);
 
@@ -403,12 +403,14 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, allSongs, songUrl }
   useEffect(() => {
     // Set up an interval to update the current playback time every 0.5 seconds
     if (isPlaying && sound) {
+      const intervalDuration = Math.max(100, 500 / speed);
       const intervalId = setInterval(() => {
         setCurrentTime((prevTime) => {
-          const updatedTime = Math.min(prevTime + 0.5, progressBarDuration);
+          const elapsedTime = 0.55;
+          const updatedTime = Math.min(prevTime + elapsedTime, progressBarDuration);
           setTrackedTime(prevTime);
           if (trackedTime <= updatedTime) {
-            setPlayedTime(playedTime + 0.5);
+            setPlayedTime(playedTime + elapsedTime);
           }
           if (updatedTime >= progressBarDuration) {
             clearInterval(intervalId);
@@ -416,13 +418,12 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, allSongs, songUrl }
           setPlayedDuration(updatedTime);
           return updatedTime;
         });
-      }, 500);
-      console.log(`Duration: ${progressBarDuration}`)
-
+      }, intervalDuration);
+      console.log(progressBarDuration)
       // Clear the interval on component unmount
       return () => clearInterval(intervalId);
     }
-  }, [loop, isPlaying, progressBarDuration, setPlayedDuration, sound, playedTime, trackedTime]);
+  }, [loop, isPlaying, progressBarDuration, setPlayedDuration, sound, playedTime, trackedTime, speed]);
 
   useEffect(() => {
     if (!isPlayed) {
@@ -431,7 +432,7 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, allSongs, songUrl }
     const updateDuration = () => {
       const soundDuration = sound?.duration();
       if (soundDuration) {
-        setProgressBarDuration(soundDuration);
+        setProgressBarDuration(Math.floor(soundDuration));
       }
     };
 

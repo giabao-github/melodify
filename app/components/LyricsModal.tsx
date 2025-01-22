@@ -42,6 +42,7 @@ const LyricsModal: React.FC<LyricsModalProps> = ({ song }) => {
 
   return (
     <InteractiveModal
+      type='lyrics'
       title={song?.title}
       description={song?.author}
       isOpen={isOpen}

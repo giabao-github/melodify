@@ -1,18 +1,17 @@
 "use client";
 
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { twMerge } from 'tailwind-merge';
-import { useSupabaseClient } from '@supabase/auth-helpers-react';
-import { FaAngleLeft, FaAngleRight } from 'react-icons/fa6';
-import { GoHomeFill } from 'react-icons/go';
-import { FaSearch } from 'react-icons/fa';
-import { FaUserAlt } from 'react-icons/fa';
-import { RiAiGenerate } from 'react-icons/ri';
-import { useUser } from '../hooks/useUser';
 import toast from 'react-hot-toast';
+import { FaAngleLeft, FaAngleRight, FaCircleUser } from 'react-icons/fa6';
+import { FaSearch } from 'react-icons/fa';
+import { GoHomeFill } from 'react-icons/go';
+import { RiAiGenerate } from 'react-icons/ri';
+import { useSupabaseClient } from '@supabase/auth-helpers-react';
+import { useUser } from '../hooks/useUser';
 import useAuthModal from '../hooks/useAuthModal';
 import Button from './Button';
-import React, { useEffect, useRef, useState } from 'react';
 
 
 const colorThemes = [
@@ -41,16 +40,16 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({children, className}) => {
   const [userState, setUserState] = useState<boolean | null>(null);
   const [hasShownWelcomeToast, setHasShownWelcomeToast] = useState(false);
-  const [themeIndex, setThemeIndex] = useState(0);
-  const [themeName, setThemeName] = useState('');
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const dropdownRef = useRef<HTMLDivElement | null>(null); 
   const router = useRouter();
   const { setButtonClick, onOpen } = useAuthModal();
-
+  
   const supabaseClient = useSupabaseClient();
-  const { user, userDetails } = useUser();
+  const { user, theme, index, setThemeGlobally, userDetails } = useUser();
+  const [themeIndex, setThemeIndex] = useState(index >= 0 ? index : 0);
+  const [themeName, setThemeName] = useState(theme || '');
 
   const handleLogout = async () => {
     const { error } = await supabaseClient.auth.signOut();
@@ -87,11 +86,63 @@ const Header: React.FC<HeaderProps> = ({children, className}) => {
     }
   }, [user, userDetails, hasShownWelcomeToast]);
 
+  useEffect(() => {
+    const updateThemeFromLocalStorage = () => {
+      const storedTheme = localStorage.getItem('selectedTheme');
+      if (storedTheme) {
+        const index = colorThemes.findIndex((theme) => theme.name === storedTheme);
+        setThemeIndex(index);
+        setThemeName(storedTheme);
+      }
+    };
+  
+    // Listen for storage changes
+    window.addEventListener('storage', updateThemeFromLocalStorage);
+  
+    // Initial theme update
+    updateThemeFromLocalStorage();
+  
+    return () => {
+      window.removeEventListener('storage', updateThemeFromLocalStorage);
+    };
+  }, []);
+
   const handleThemeSelection = (index: number, name: string) => {
+    setThemeGlobally(name);
     setThemeIndex(index);
     setThemeName(name);
     setIsDropdownVisible(false);
+    localStorage.setItem('selectedTheme', name);
   }
+
+  useEffect(() => {
+    const updateTheme = async () => {
+      await  supabaseClient
+        .from('users')
+        .update({
+          theme: themeName
+        })
+        .eq('id', user?.id)
+    }
+    if (themeName.length > 0) {
+      updateTheme();
+    }
+  }, [supabaseClient, themeName, user?.id]);
+
+  useEffect(() => {
+    const applyTheme = async () => {
+      const { data } = await supabaseClient
+        .from('users')
+        .select('theme')
+        .eq('id', user?.id)
+      if (data) {
+        const index = colorThemes.findIndex(theme => theme.name === data[0].theme);
+        setThemeIndex(index);
+        setThemeName(data[0].theme);
+      }
+    }
+    applyTheme();
+  }, [supabaseClient, user?.id])
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -110,19 +161,38 @@ const Header: React.FC<HeaderProps> = ({children, className}) => {
     };
   }, []);
 
-  const calculateDropdownPosition = () => {
+  const screenWidth = window.innerWidth;
+
+  const calculateDropdownPosition = useCallback(() => {
     if (buttonRef.current) {
       const buttonRect = buttonRef.current.getBoundingClientRect();
+      
+      if (screenWidth < 1175) {
+        return {
+          top: buttonRect.top + 50, 
+          left: buttonRect.left + 200,
+        };
+      }
       return {
         top: buttonRect.top,
         left: buttonRect.right + window.scrollX,
       };
     }
-    return { top: 0, left: 0 };
-  };
+    return { top: 80, left: 320 };
+  }, [screenWidth]);
+
+  useEffect(() => {
+    const handleResize = () => setDropdownPosition(calculateDropdownPosition());
+    window.addEventListener('resize', handleResize);
+  
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [calculateDropdownPosition]);
+
 
   const currentTheme = colorThemes[themeIndex];
-  const dropdownPosition = calculateDropdownPosition();
+  const [dropdownPosition, setDropdownPosition] = useState(calculateDropdownPosition());
 
   return (
     <div 
@@ -157,8 +227,8 @@ const Header: React.FC<HeaderProps> = ({children, className}) => {
               ref={dropdownRef}
               className='absolute bg-neutral-200 shadow-lg rounded-lg p-4 max-w-full z-10 mx-4 flex flex-col gap-y-1'
               style={{
-                top: dropdownPosition.top,
-                left: dropdownPosition.left,
+                top: `${dropdownPosition.top}px`,
+                left: `${dropdownPosition.left}px`,
               }}
             >
               <div className='grid grid-cols-3 gap-4'>
@@ -189,7 +259,7 @@ const Header: React.FC<HeaderProps> = ({children, className}) => {
         {userState === null ? (<></>) : (
           <div className='flex justify-between items-center gap-x-4'>
             {userState ? (
-              <div className='flex gap-x-4 items-center'>
+              <div className='flex gap-x-6 items-center'>
                 <Button
                   onClick={handleLogout}
                   className='bg-white hover:bg-white/75 hover:opacity-100 px-6 py-2 whitespace-nowrap transition-none'
@@ -198,13 +268,13 @@ const Header: React.FC<HeaderProps> = ({children, className}) => {
                 </Button>
                 <Button
                   onClick={() => router.push('/account')}
-                  className='bg-white hover:bg-white/75 hover:opacity-100 rounded-full p-4 ml-3 flex items-center justify-center transition-none'
+                  className='bg-white hover:bg-white/75 hover:opacity-100 rounded-full ml-3 p-0 flex items-center justify-center transition-none'
                 >
-                  <FaUserAlt size={18} />
+                  <FaCircleUser size={42} />
                 </Button>
               </div>
             ) : (
-              <>
+              <div className='flex gap-x-6 items-center'>
                 <div>
                   <Button
                     onClick={() => {
@@ -227,7 +297,7 @@ const Header: React.FC<HeaderProps> = ({children, className}) => {
                     Log in
                   </Button>
                 </div>
-              </>
+              </div>
             )}
           </div>
         )}

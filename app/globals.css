@@ -74,4 +74,12 @@ input[type="range"]::-ms-thumb {
   cursor: pointer;
 }
 
+@media (max-width: 768px) {
+  .dropdown {
+    top: auto !important;
+    bottom: auto;
+    left: 0 !important; 
+    transform: translateY(100%);
+  }
+}
 

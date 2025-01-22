@@ -51,10 +51,11 @@ const AccountContent = () => {
   }
 
   return (
-    <div className='my-8 mx-4 px-6'>
+    <div className='my-8 mx-4 px-10'>
+      <p className='text-2xl font-semibold mb-12 text-primaryAccent'>❄️ Subscription Details</p>
       {!subscription && (
         <div className='flex flex-col gap-y-4'>
-          <p className='text-lg mb-8'>
+          <p className='text-lg mb-12'>
             You are using <b>Melodify Free</b>
           </p>
           <Button
@@ -67,9 +68,14 @@ const AccountContent = () => {
       )}
       {subscription && (
         <div className='flex flex-col gap-y-4'>
-          <p className='text-lg mb-8'>
-            You have subscribed to <b>{subscription?.prices?.products?.name}</b> since {formatDate(subscription?.created)}
-          </p>
+          <div className='mb-12'>
+            <p className='text-lg mb-6'>
+              You have subscribed to <b>{subscription?.prices?.products?.name}</b> since {formatDate(subscription?.created)}.
+            </p>
+            <p className='text-lg'>
+              Your plan will expire in {formatDate(subscription?.current_period_end)}.
+            </p>
+          </div>
           <Button
             disabled={loading || isLoading}
             onClick={redirectToCustomerPortal}

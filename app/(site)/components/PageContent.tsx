@@ -8,7 +8,7 @@ import useSong from '../../hooks/useSong';
 import { useUser } from '../../hooks/useUser';
 import { useSupabaseClient } from '@supabase/auth-helpers-react';
 import Link from 'next/link';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { BounceLoader } from 'react-spinners';
 
@@ -19,6 +19,7 @@ interface PageContentProps {
 
 const PageContent: React.FC<PageContentProps> = ({ songs }) => {
   const [targetSong, setTargetSong] = useState(null);
+  const [noData, setNoData] = useState(false);
   const [sortedSongs, setSortedSongs] = useState<Song[]>(songs);
   const [loading, setLoading] = useState(true);
   
@@ -71,16 +72,21 @@ const PageContent: React.FC<PageContentProps> = ({ songs }) => {
         return;
       }
 
+      if (topSongs.length === 0) {
+        setNoData(true);
+        return;
+      }
+
       const randomIndex = Math.floor(Math.random() * topSongs.length);
       setTargetSong(topSongs[randomIndex]);
     }
     
-    if (songs && user && !targetSong) {
+    if (songs && user && !targetSong && !noData) {
       fetchTopSongs();
     } else {
       setLoading(false);
     }
-  }, [songs, supabaseClient, targetSong, user]);
+  }, [noData, songs, supabaseClient, targetSong, user]);
 
   useEffect(() => {
     if (!targetSong) {

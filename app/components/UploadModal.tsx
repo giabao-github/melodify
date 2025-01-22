@@ -43,7 +43,7 @@ const UploadModal = () => {
   }
 
   const onSubmit = async (values: FieldValues) => {
-    console.log("Form submitted with values:", values);
+    console.log('Form submitted with values:', values);
     try {
       console.log(user);
       setIsLoading(true);
