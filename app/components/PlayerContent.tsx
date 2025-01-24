@@ -366,6 +366,14 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, allSongs, songUrl }
   }, [sound, setIsPlayed]);
 
   useEffect(() => {
+    const fetchDuration = async () => {
+      const { data } = await supabaseClient
+        .from('songs')
+        .select('duration')
+        .eq('id', song.id)
+        .single();
+      setProgressBarDuration(data?.duration);
+    }
     // Update loop and sound settings
     setLoop(loop);
     setSound(sound);
@@ -373,10 +381,11 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, allSongs, songUrl }
     // Sync currentTime with playedDuration
     setCurrentTime(playedDuration);
 
-    if (sound && typeof sound.duration === 'function') {
-      setProgressBarDuration(Math.floor(sound.duration()));
-    }
-  }, [loop, setLoop, setSound, sound, playedDuration, setProgressBarDuration]);
+    // fetchDuration();
+    // if (sound && typeof sound.duration === 'function') {
+    //   setProgressBarDuration(sound.duration());
+    // }
+  }, [loop, setLoop, setSound, sound, playedDuration, setProgressBarDuration, supabaseClient, song.id]);
 
   useEffect(() => {
     const onEndCallback = async () => {
@@ -406,7 +415,7 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, allSongs, songUrl }
       const intervalDuration = Math.max(100, 500 / speed);
       const intervalId = setInterval(() => {
         setCurrentTime((prevTime) => {
-          const elapsedTime = 0.55;
+          const elapsedTime = 0.5;
           const updatedTime = Math.min(prevTime + elapsedTime, progressBarDuration);
           setTrackedTime(prevTime);
           if (trackedTime <= updatedTime) {
@@ -437,7 +446,7 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, allSongs, songUrl }
     };
 
     updateDuration();
-  }, [isPlayed, progressBarDuration, setProgressBarDuration, sound]);
+  }, [isPlayed, setProgressBarDuration, sound]);
 
   useEffect(() => {
     const ids = player.shuffledIds.length > 0 ? player.shuffledIds : player.ids;
