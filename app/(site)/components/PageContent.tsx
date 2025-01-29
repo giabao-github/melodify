@@ -1,6 +1,6 @@
 "use client";
 
-import { Song } from '../../../types';
+import { Playlist, Song } from '../../../types';
 import SongItem from '../../components/SongItem';
 import useOnPlay from '../../hooks/useOnPlay';
 import usePlayer from '../../hooks/usePlayer';
@@ -15,9 +15,10 @@ import { BounceLoader } from 'react-spinners';
 
 interface PageContentProps {
   songs: Song[];
+  playlists: Playlist[];
 }
 
-const PageContent: React.FC<PageContentProps> = ({ songs }) => {
+const PageContent: React.FC<PageContentProps> = ({ songs, playlists }) => {
   const [targetSong, setTargetSong] = useState(null);
   const [noData, setNoData] = useState(false);
   const [sortedSongs, setSortedSongs] = useState<Song[]>(songs);
@@ -144,9 +145,9 @@ const PageContent: React.FC<PageContentProps> = ({ songs }) => {
         {sortedSongs.map((item) => (
           <SongItem
             onClick={(id: string) => onPlay(id)}
-            onAdd={() => {}}
             key={item.id}
             data={item}
+            playlists={playlists}
           />
         ))}
       </div>

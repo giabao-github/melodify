@@ -11,16 +11,18 @@ import Library from './Library';
 import usePlayer from '../hooks/usePlayer';
 import { twMerge } from 'tailwind-merge';
 import { Alexandria } from 'next/font/google';
+import { Playlist, Song } from '../../types';
 
 
 const rowdies = Alexandria({ weight: '400', subsets: ['latin', 'vietnamese', 'arabic']});
 
 interface SidebarProps {
   children: React.ReactNode;
-  songs: any;
+  songs: Song[];
+  playlists: Playlist[];
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ children, songs }) => {
+const Sidebar: React.FC<SidebarProps> = ({ children, songs, playlists }) => {
   const pathname = usePathname() || '';
   const player = usePlayer();
 
@@ -68,7 +70,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children, songs }) => {
           </div>
         </Box>
         <Box className='overflow-y-auto h-full py-1'>
-          <Library songs={songs} />
+          <Library songs={songs} playlists={playlists} />
         </Box>
       </div>
       <main className='h-full flex-1 overflow-y-auto py-1'>

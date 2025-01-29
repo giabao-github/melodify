@@ -9,6 +9,7 @@ import Player from './components/Player';
 import ClientOnly from './components/ClientOnly';
 import Sidebar from './components/Sidebar';
 import getActiveProducts from '../actions/getActiveProducts';
+import getPlaylistsByUserId from '../actions/getPlaylistsByUserId';
 
 
 const figtree = Figtree({ subsets: ['latin'] });
@@ -28,6 +29,7 @@ export const revalidate = 0;
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const userSongs = await getSongsByUserId();
+  const userPlaylists = await getPlaylistsByUserId();
   const products = await getActiveProducts();
 
   return (
@@ -39,7 +41,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <SupabaseProvider>
             <UserProvider>
               <ModalProvider products={products} />
-              <Sidebar songs={userSongs}>
+              <Sidebar songs={userSongs} playlists={userPlaylists}>
                 {children}
               </Sidebar>
               <Player />

@@ -3,7 +3,7 @@
 import { PiPlaylistBold } from 'react-icons/pi';
 import { GoPlus } from 'react-icons/go';
 
-import { Song } from '../../types';
+import { Playlist, Song } from '../../types';
 import { useUser } from '../hooks/useUser';
 import useUploadModal from '../hooks/useUploadModal';
 import useOptionsModal from '../hooks/useOptionsModal';
@@ -12,21 +12,21 @@ import MediaItem from './MediaItem';
 import useOnPlay from '../hooks/useOnPlay';
 import usePlaylistModal from '../hooks/usePlaylistModal';
 import useLyricsModal from '../hooks/useLyricsModal';
+import PlaylistContent from './PlaylistContent';
 
 
 interface LibraryProps {
   songs: Song[];
+  playlists: Playlist[];
 }
 
-const Library: React.FC<LibraryProps> = ({ songs }) => {
+const Library: React.FC<LibraryProps> = ({ songs, playlists }) => {
   const subscribeModal = useSubscribeModal();
   const lyricsModal = useLyricsModal();
   const playlistModal = usePlaylistModal();
   const optionsModal = useOptionsModal();
   const uploadModal = useUploadModal();
   const { user, subscription } = useUser();
-
-  const onPlay = useOnPlay(songs);
 
   const onClick = () => {
     if (!user) {
@@ -60,18 +60,7 @@ const Library: React.FC<LibraryProps> = ({ songs }) => {
           className='p-1 text-white hover:text-primaryAccent hover:bg-neutral-700 hover:stroke-2 cursor-pointer transition rounded-full' 
         />
       </div>
-      <div className='flex flex-col gap-y-2 mt-6 px-3 font-bold text-lg'>
-        {
-          songs.map((item) => (
-            <MediaItem
-              onClick={(id: string) => onPlay(id)}
-              key={item.id}
-              data={item}
-              type='library'
-            />
-          ))
-        }
-      </div>
+      <PlaylistContent songs={songs} playlists={playlists} />
     </div>
   )
 }

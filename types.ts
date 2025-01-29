@@ -15,6 +15,14 @@ export interface Song {
   access_type: string;
 }
 
+export interface Playlist {
+  id: string;
+  user_id: string;
+  name: string;
+  songs: number[];
+  image_url: string;
+}
+
 export interface UserDetails {
   id: string;
   first_name: string;
