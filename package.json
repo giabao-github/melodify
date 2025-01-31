@@ -16,6 +16,7 @@
     "@supabase/auth-helpers-react": "^0.5.0",
     "@supabase/auth-ui-react": "^0.4.7",
     "@supabase/auth-ui-shared": "^0.1.8",
+    "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.47.16",
     "axios": "^1.7.7",
     "dotenv": "^16.4.5",

@@ -366,25 +366,12 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, allSongs, songUrl }
   }, [sound, setIsPlayed]);
 
   useEffect(() => {
-    const fetchDuration = async () => {
-      const { data } = await supabaseClient
-        .from('songs')
-        .select('duration')
-        .eq('id', song.id)
-        .single();
-      setProgressBarDuration(data?.duration);
-    }
     // Update loop and sound settings
     setLoop(loop);
     setSound(sound);
 
     // Sync currentTime with playedDuration
     setCurrentTime(playedDuration);
-
-    // fetchDuration();
-    // if (sound && typeof sound.duration === 'function') {
-    //   setProgressBarDuration(sound.duration());
-    // }
   }, [loop, setLoop, setSound, sound, playedDuration, setProgressBarDuration, supabaseClient, song.id]);
 
   useEffect(() => {

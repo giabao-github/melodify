@@ -5,7 +5,7 @@ import Modal from './Modal';
 import { useSessionContext, useSupabaseClient } from '@supabase/auth-helpers-react';
 import { useRouter } from 'next/navigation';
 import { Auth } from '@supabase/auth-ui-react';
-import { ThemeSupa, ViewForgottenPassword, ViewMagicLink, ViewSignIn, ViewSignUp, ViewType, ViewUpdatePassword, ViewVerifyOtp } from '@supabase/auth-ui-shared';
+import { ThemeSupa, ViewForgottenPassword, ViewMagicLink, ViewSignIn, ViewSignUp, ViewUpdatePassword, ViewVerifyOtp } from '@supabase/auth-ui-shared';
 import useAuthModal from '../hooks/useAuthModal';
 import '../css/AuthModal.css';
 import useLyricsModal from '../hooks/useLyricsModal';
@@ -94,48 +94,48 @@ const AuthModal = () => {
   useEffect(() => {
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
-        if (mutation.type === "childList" && mutation.addedNodes.length > 0) {
+        if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
           mutation.addedNodes.forEach((node) => {
-            if (node instanceof HTMLElement && node.classList.contains("supabase-auth-ui_ui-message")) {
+            if (node instanceof HTMLElement && node.classList.contains('supabase-auth-ui_ui-message')) {
               const originalErrorMessage = node.innerHTML.trim();
-              let translatedErrorMessage = "";
+              let translatedErrorMessage = '';
 
               switch (originalErrorMessage) {
-                case "Anonymous sign-ins are disabled":
-                translatedErrorMessage = "Please provide an email with the correct format";
+                case 'Anonymous sign-ins are disabled':
+                translatedErrorMessage = 'Please provide an email with the correct format';
                 break;
-              case "Signup requires a valid password":
-                translatedErrorMessage = "Please provide a valid password";
+              case 'Signup requires a valid password':
+                translatedErrorMessage = 'Please provide a valid password';
                 break;
-              case "User already registered":
-                translatedErrorMessage = "This address is already linked to an existing account";
+              case 'User already registered':
+                translatedErrorMessage = 'This address is already linked to an existing account';
                 break;
-              case "Only an email address or phone number should be provided on signup.":
-                translatedErrorMessage = "Only an email with the valid format is accepted for account registration";
+              case 'Only an email address or phone number should be provided on signup.':
+                translatedErrorMessage = 'Only an email with the valid format is accepted for account registration';
                 break;
-              case "Signups not allowed for this instance":
-                translatedErrorMessage = "Account registration is not allowed for this instance";
+              case 'Signups not allowed for this instance':
+                translatedErrorMessage = 'Account registration is not allowed for this instance';
                 break;
-              case "Email signups are disabled":
-                translatedErrorMessage = "Account registration via email is disabled";
+              case 'Email signups are disabled':
+                translatedErrorMessage = 'Account registration via email is disabled';
                 break;
-              case "Email link is invalid or has expired":
-                translatedErrorMessage = "The email link is invalid or has been expired";
+              case 'Email link is invalid or has expired':
+                translatedErrorMessage = 'The email link is invalid or has been expired';
                 break;
-              case "Token has expired or is invalid":
-                translatedErrorMessage = "The token is invalid or has been expired";
+              case 'Token has expired or is invalid':
+                translatedErrorMessage = 'The token is invalid or has been expired';
                 break;
-              case "The new email address provided is invalid":
-                translatedErrorMessage = "The new email address provided is in the wrong format";
+              case 'The new email address provided is invalid':
+                translatedErrorMessage = 'The new email address provided is in the wrong format';
                 break;
-              case "Password should be at least 8 characters. Password should contain at least one character of each: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ, 0123456789.":
-                translatedErrorMessage = "Password should be at least 8 characters, containing both digit(s) and letter(s)";
+              case 'Password should be at least 8 characters. Password should contain at least one character of each: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ, 0123456789.':
+                translatedErrorMessage = 'Password should be at least 8 characters, containing both digit(s) and letter(s)';
                 break;
-              case "Invalid login credentials":
-                translatedErrorMessage = "Incorrect or unregistered credentials";
+              case 'Invalid login credentials':
+                translatedErrorMessage = 'Incorrect or unregistered credentials';
                 break;
-              case "missing email or phone":
-                translatedErrorMessage = "A registered email and password are required to sign in";
+              case 'missing email or phone':
+                translatedErrorMessage = 'A registered email and password are required to sign in';
                 break;
               default:
                 translatedErrorMessage = originalErrorMessage;

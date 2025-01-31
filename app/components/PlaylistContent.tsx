@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
@@ -12,6 +12,9 @@ import { GoKebabHorizontal } from 'react-icons/go';
 import { FaPenToSquare, FaTrash } from 'react-icons/fa6';
 import MediaItem from './MediaItem';
 import useOnPlay from '../hooks/useOnPlay';
+import usePlaylist from '../hooks/usePlaylist';
+import usePlayer from '../hooks/usePlayer';
+import usePlayerSettings from '../hooks/usePlayerSettings';
 
 
 interface PlaylistContentProps {
@@ -20,13 +23,14 @@ interface PlaylistContentProps {
 }
 
 const PlaylistContent: React.FC<PlaylistContentProps> = ({ songs, playlists }) => {
+  const router = useRouter();
   const { user } = useUser();
+  const { activeId, setIds } = usePlayer();
   const supabaseClient = useSupabaseClient();
   const authModal = useAuthModal();
-  const router = useRouter();
+  const playlist = usePlaylist();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedPlaylist, setSelectedPlaylist] = useState<Playlist | null>(null);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [newPlaylistName, setNewPlaylistName] = useState('');
@@ -34,11 +38,10 @@ const PlaylistContent: React.FC<PlaylistContentProps> = ({ songs, playlists }) =
   const [editPlaylistId, setEditPlaylistId] = useState<string | null>(null);
   const [editPlaylistName, setEditPlaylistName] = useState('');
   const [deletePlaylistId, setDeletePlaylistId] = useState<string | null>(null);
-  const [playlistUrl, setPlaylistUrl] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [error, setError] = useState('');
-  const [isLoopActive, setIsLoopActive] = useState(false);
-  const [isShuffleActive, setIsShuffleActive] = useState(false);
+  const [createError, setCreateError] = useState('');
+  const [editError, setEditError] = useState('');
+  const { loop, shuffle, setLoop, setShuffle } = usePlayerSettings();
   const [sortBy, setSortBy] = useState('name');
   const optionsRef = useRef<HTMLDivElement | null>(null);
   const buttonRef = useRef<HTMLDivElement | null>(null);
@@ -52,8 +55,35 @@ const PlaylistContent: React.FC<PlaylistContentProps> = ({ songs, playlists }) =
 
 
   useEffect(() => {
-    localStorage.setItem('playlists', JSON.stringify(playlists));
+    playlist.setPlaylists(playlists);
   }, [playlists]);
+
+  useEffect(() => {
+    if (!user?.id) {
+      return;
+    }
+
+    const fetchPlaylists = async () => {
+      const orderBy = sortBy === 'name' ? 'name' : 'created_at';
+      const orderDirection = !!(sortBy === 'name');
+
+      const { data, error } = await supabaseClient
+        .from('playlists')
+        .select('*')
+        .eq('user_id', user.id)
+        .order(orderBy, { ascending: orderDirection });
+
+      if (error) {
+        toast.remove();
+        return toast.error('Failed to load playlists');
+      }
+
+      playlist.setPlaylists(data || []);
+    };
+
+    fetchPlaylists();
+  }, [supabaseClient, playlist, user?.id]);
+  
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -76,30 +106,32 @@ const PlaylistContent: React.FC<PlaylistContentProps> = ({ songs, playlists }) =
   const handleCreatePlaylist = async () => {
     setIsLoading(true);
 
-    if (newPlaylistName.length < 1) {
-      setError('Empty playlist name');
+    if (newPlaylistName.trim().length < 1) {
+      setCreateError('Empty playlist name');
       return;
     } else if (newPlaylistName.length > 32) {
-      setError('Playlist name contains 1-32 characters');
+      setCreateError('Playlist name contains 1-32 characters');
       return;
     }
 
-    if (playlists.some((playlist: Playlist) => playlist.name === newPlaylistName)) {
-      setError('Duplicate playlist name');
+    if (playlist.playlists.some((playlist: Playlist) => playlist.name === newPlaylistName)) {
+      setCreateError('Duplicate playlist name');
       return;
     }
 
     // Insert the created playlist to the table 'playlists' in database
-    const { error: supabaseError } = await supabaseClient
+    const { data, error: supabaseError } = await supabaseClient
       .from('playlists')
       .insert({
         user_id: user?.id,
         name: newPlaylistName,
         songs: [],
-      });
+      })
+      .select()
+      .single();
 
     if (supabaseError) {
-      console.error("Database insert error:", supabaseError);
+      console.error('Database insert error:', supabaseError);
       setIsLoading(false);    
       toast.remove();
       return toast.error(supabaseError.message);
@@ -107,30 +139,31 @@ const PlaylistContent: React.FC<PlaylistContentProps> = ({ songs, playlists }) =
 
     router.refresh();
     toast.remove();
-    toast.success('Playlist created');
+    toast.success(`Created playlist '${newPlaylistName}'`);
+    playlist.setPlaylists([...playlist.playlists, data]);
     setIsLoading(false);
     setNewPlaylistName('');
-    setIsCreateModalOpen(false);
-    setError('');
+    playlist.setIsCreateOpen(false);
+    setCreateError('');
   };
 
   const handleEditPlaylist = async (playlistId: string) => {
-    const playlist = playlists.find(playlist => playlist.id === playlistId);
+    const editedPlaylist = playlist.playlists.find(playlist => playlist.id === playlistId);
 
-    if (editPlaylistName.length < 1) {
-      setError('Empty playlist name');
+    if (editPlaylistName.trim().length < 1) {
+      setEditError('Empty playlist name');
       return;
-    } else if (editPlaylistName.length > 32) {
-      setError('Playlist name contains 1-32 characters');
-      return;
-    }
-
-    if (playlists.some((playlist: Playlist) => playlist.name === editPlaylistName) && editPlaylistId !== playlistId) {
-      setError('Duplicate playlist name');
+    } else if (editPlaylistName.trim().length > 32) {
+      setEditError('Playlist name contains 1-32 characters');
       return;
     }
 
-    if (playlist) {
+    if (playlist.playlists.some((playlist: Playlist) => playlist.name.trim() === editPlaylistName.trim()) && editPlaylistId !== playlistId) {
+      setEditError('Duplicate playlist name');
+      return;
+    }
+
+    if (editedPlaylist) {
       setIsLoading(true);
 
       const { error: supabaseError } = await supabaseClient
@@ -139,24 +172,32 @@ const PlaylistContent: React.FC<PlaylistContentProps> = ({ songs, playlists }) =
           name: editPlaylistName
         })
         .eq('id', playlistId)
-        .eq('user_id', user?.id);
+        .eq('user_id', user?.id)
+        .select()
+        .single();
 
       if (supabaseError) {
-        console.error("Database update error:", supabaseError);
+        console.error('Database update error:', supabaseError);
         setIsLoading(false);    
         toast.remove();
         return toast.error(supabaseError.message);
       }
 
       router.refresh();
+      playlist.setPlaylists(
+        [...playlist.playlists.map((playlist) =>
+          playlist.id === playlistId ? { ...playlist, name: editPlaylistName } : playlist
+        )]
+      );
       setIsLoading(false);
       setEditPlaylistName('');
+      setEditError('');
       setIsEditModalOpen(false);
     }
   }
 
-  const handleDeletePlaylist = async (playlistId: string) => {
-    const index = playlists.findIndex((playlist: Playlist) => playlist.id === playlistId);
+  const handleDeletePlaylist = async (deletedPlaylist: Playlist) => {
+    const index = playlist.playlists.findIndex((playlist: Playlist) => playlist.id === deletedPlaylist.id);
 
     if (!user) {
       return authModal.onOpen();
@@ -168,24 +209,34 @@ const PlaylistContent: React.FC<PlaylistContentProps> = ({ songs, playlists }) =
       const { error: supabaseError } = await supabaseClient
       .from('playlists')
       .delete()
-      .eq('id', playlistId)
-      .eq('user_id', user?.id);
+      .eq('id', deletedPlaylist.id)
+      .eq('user_id', user?.id)
+      .select()
+      .single();
 
       if (supabaseError) {
-        console.error("Database delete error:", supabaseError);
+        console.error('Database delete error:', supabaseError);
         setIsLoading(false);    
         toast.remove();
         return toast.error(supabaseError.message);
       }
 
       router.refresh();
+      toast.remove();
+      toast.success(`Deleted playlist '${deletedPlaylist.name}'`);
+      playlist.setPlaylists(playlist.playlists.filter((playlist) => playlist.id !== deletedPlaylist.id));
       setIsLoading(false);
       setIsDeleteModalOpen(false);
     }
   }
 
-  const getPlaylistThumbnail = (playlist: Playlist) => {
-    if (playlist.songs.length === 0) {
+  const handleSelectPlaylist = (selectedPlaylist: Playlist) => {
+    setSelectedPlaylist(selectedPlaylist);
+    playlist.setSelectedPlaylist(selectedPlaylist);
+  }
+
+  const getPlaylistThumbnail = useCallback((currentPlaylist: Playlist) => {
+    if (currentPlaylist.songs.length === 0) {
       return (
         <div className='w-full h-full bg-secondary flex items-center justify-center'>
           <FiMusic className='text-2xl text-white' />
@@ -193,7 +244,7 @@ const PlaylistContent: React.FC<PlaylistContentProps> = ({ songs, playlists }) =
       );
     }
 
-    const playlistSongs = songs.filter((song) => playlist?.songs.toString().includes(song.id));
+    const playlistSongs = songs.filter((song) => currentPlaylist?.songs.toString().includes(song.id));
 
     if (playlistSongs.length >= 1) {
       const { data: imageData } = supabaseClient
@@ -201,19 +252,11 @@ const PlaylistContent: React.FC<PlaylistContentProps> = ({ songs, playlists }) =
         .from('images')
         .getPublicUrl(playlistSongs[0].image_path);
 
-      supabaseClient
-        .from('playlists')
-        .update({
-          image_url: imageData.publicUrl
-        })
-        .eq('user_id', user?.id)
-        .eq('id', playlist.id)
-
       return (
         <div className='relative rounded-md min-h-[48px] min-w-[48px] overflow-hidden'>
           <Image
             src={imageData.publicUrl}
-            alt={playlist.name}
+            alt={currentPlaylist.name}
             fill
             sizes='auto auto'
             priority
@@ -222,21 +265,19 @@ const PlaylistContent: React.FC<PlaylistContentProps> = ({ songs, playlists }) =
         </div>
       );
     }
-  }
+  }, [songs]);
 
-  const filteredPlaylists = playlists
-    .filter((playlist: Playlist) =>
-      playlist.name.toLowerCase().includes(searchQuery.trim().toLowerCase())
-    )
-    .sort((playlist: Playlist, otherPlaylist: Playlist) => {
-      if (sortBy === 'name') {
-        return playlist.name.localeCompare(otherPlaylist.name);
-      }
-      if (sortBy === 'recent') {
-        return Number(otherPlaylist.id) - Number(playlist.id);
-      }
-      return 0;
-    });
+  const filteredPlaylists = useMemo(() => {
+    return playlist.playlists
+      .filter((playlist) =>
+        playlist.name.toLowerCase().includes(searchQuery.trim().toLowerCase())
+      )
+      .sort((a, b) =>
+        sortBy === 'name'
+          ? a.name.localeCompare(b.name)
+          : 0
+      );
+  }, [playlist.playlists, searchQuery, sortBy]);
 
   return (
     <div className='h-fit w-full flex flex-col'>
@@ -247,14 +288,14 @@ const PlaylistContent: React.FC<PlaylistContentProps> = ({ songs, playlists }) =
               if (!user) {
                 return authModal.onOpen();
               }
-              setIsCreateModalOpen(true);
+              playlist.setIsCreateOpen(true);
             }}
             className='p-2 hover:bg-secondary rounded-full transition-colors cursor-pointer'
           >
             <FiPlus className='text-xl text-foreground' />
           </div>
         </div>
-        {isCreateModalOpen && (
+        {playlist.isCreateOpen && (
           <div className='mx-4 flex items-center mb-8'>
             <div className='rounded-lg shadow-lg w-full'>
               <input
@@ -264,14 +305,14 @@ const PlaylistContent: React.FC<PlaylistContentProps> = ({ songs, playlists }) =
                 placeholder='Playlist name'
                 className='w-full py-2 px-3 bg-gray-800 border border-primaryAccent rounded-md focus:outline-none focus:ring-1 focus:ring-primaryAccent'
               />
-              {error && <p className='text-sm text-red-400 my-3'>{error}</p>}
+              {createError && <p className='text-sm text-red-400 my-3'>{createError}</p>}
               <div className='mt-4 flex justify-end space-x-4'>
                 <button
                   disabled={isLoading}
                   onClick={() => {
-                    setIsCreateModalOpen(false);
+                    playlist.setIsCreateOpen(false);
                     setNewPlaylistName('');
-                    setError('');
+                    setCreateError('');
                   }}
                   className='px-4 py-2 text-black font-semibold bg-button rounded-md hover:ring-2 hover:ring-white'
                 >
@@ -321,9 +362,12 @@ const PlaylistContent: React.FC<PlaylistContentProps> = ({ songs, playlists }) =
               className='py-4'
             >
               <div className='flex items-center justify-between px-4 mb-4'>
-                <div className='flex flex-row gap-x-4'>
+                <div className='flex flex-row gap-x-3'>
                   <div
-                    onClick={() => setSelectedPlaylist(null)}
+                    onClick={() => {
+                      setSelectedPlaylist(null);
+                      playlist.setSelectedPlaylist(selectedPlaylist);
+                    }}
                     className='flex items-center cursor-pointer'
                   >
                     <FiChevronLeft size={20} />
@@ -332,21 +376,21 @@ const PlaylistContent: React.FC<PlaylistContentProps> = ({ songs, playlists }) =
                     title={selectedPlaylist.name} 
                     className='text-lg font-semibold'
                   >
-                    {selectedPlaylist.name.length > 12 ? selectedPlaylist.name.slice(0, 12) + '...' : selectedPlaylist.name}
+                    {selectedPlaylist.name.length > 16 ? selectedPlaylist.name.slice(0, 16) + '...' : selectedPlaylist.name}
                   </h3>
                 </div>
-                <div className='flex space-x-2'>
+                <div className='flex'>
                   <div
-                    title={`Loop: ${isLoopActive ? 'On' : 'Off'}`}
-                    onClick={() => setIsLoopActive(!isLoopActive)}
-                    className={`p-2 cursor-pointer rounded-full ${isLoopActive ? 'bg-primaryAccent/70 text-black' : 'hover:bg-primaryAccent/70'}`}
+                    title={`Loop: ${loop ? 'On' : 'Off'}`}
+                    onClick={() => setLoop(!loop)}
+                    className={`p-2 cursor-pointer rounded-full ${loop ? 'bg-primaryAccent/70 text-black' : 'hover:bg-primaryAccent/70'}`}
                   >
                     <FiRepeat />
                   </div>
                   <div
-                    title={`Shuffle: ${isShuffleActive ? 'On' : 'Off'}`}
-                    onClick={() => setIsShuffleActive(!isShuffleActive)}
-                    className={`p-2 cursor-pointer rounded-full ${isShuffleActive ? 'bg-primaryAccent/70 text-black' : 'hover:bg-primaryAccent/70'}`}
+                    title={`Shuffle: ${shuffle ? 'On' : 'Off'}`}
+                    onClick={() => setShuffle(!shuffle)}
+                    className={`p-2 cursor-pointer rounded-full ${shuffle ? 'bg-primaryAccent/70 text-black' : 'hover:bg-primaryAccent/70'}`}
                   >
                     <FiShuffle />
                   </div>
@@ -359,6 +403,7 @@ const PlaylistContent: React.FC<PlaylistContentProps> = ({ songs, playlists }) =
                       onClick={(id: string) => onPlay(id)}
                       key={item.id}
                       data={item}
+                      activeSong={item.id === activeId ? item : undefined}
                       type='library'
                     />
                   ))
@@ -378,7 +423,7 @@ const PlaylistContent: React.FC<PlaylistContentProps> = ({ songs, playlists }) =
                   className='flex flex-col gap-y-4'
                 >
                   <div
-                    onClick={() => setSelectedPlaylist(playlist)} 
+                    onClick={() => handleSelectPlaylist(playlist)} 
                     className='group flex items-center w-full p-3 bg-neutral-800 hover:bg-neutral-700 rounded-md cursor-pointer'
                   >
                     <div className='w-12 h-12 border border-neutral-600 rounded-md overflow-hidden mr-3'>
@@ -389,7 +434,7 @@ const PlaylistContent: React.FC<PlaylistContentProps> = ({ songs, playlists }) =
                         title={playlist.name} 
                         className='font-semibold text-lg'
                       >
-                        {playlist.name.length > 12 ? playlist.name.slice(0, 12) + '...' : playlist.name}
+                        {playlist.name.length > 20 ? playlist.name.slice(0, 20) + '...' : playlist.name}
                       </p>
                       <div className='flex flex-row justify-between w-full'>
                         <p className='text-sm text-neutral-400'>
@@ -455,7 +500,7 @@ const PlaylistContent: React.FC<PlaylistContentProps> = ({ songs, playlists }) =
                           placeholder='Playlist name'
                           className='w-full py-2 px-3 bg-gray-800 border border-primaryAccent rounded-md focus:outline-none focus:ring-1 focus:ring-primaryAccent'
                         />
-                        {error && <p className='text-sm text-red-400 my-3'>{error}</p>}
+                        {editError && <p className='text-sm text-red-400 my-3'>{editError}</p>}
                         <div className='mt-4 flex justify-end space-x-4'>
                           <button
                             disabled={isLoading}
@@ -463,7 +508,7 @@ const PlaylistContent: React.FC<PlaylistContentProps> = ({ songs, playlists }) =
                               setIsEditModalOpen(false);
                               setEditPlaylistId(null);
                               setEditPlaylistName('');
-                              setError('');
+                              setEditError('');
                             }}
                             className='px-4 py-2 text-black font-semibold bg-button rounded-md hover:ring-2 hover:ring-white disabled:opacity-50'
                           >
@@ -471,7 +516,7 @@ const PlaylistContent: React.FC<PlaylistContentProps> = ({ songs, playlists }) =
                           </button>
                           <button
                             disabled={isLoading}
-                            onClick={() =>{
+                            onClick={() => {
                               handleEditPlaylist(playlist.id);
                               setEditPlaylistId(null);
                             }}
@@ -505,7 +550,7 @@ const PlaylistContent: React.FC<PlaylistContentProps> = ({ songs, playlists }) =
                           <button
                             disabled={isLoading}
                             onClick={() =>{
-                              handleDeletePlaylist(playlist.id);
+                              handleDeletePlaylist(playlist);
                               setDeletePlaylistId(null);
                             }}
                             className='px-4 py-2 text-black font-semibold bg-secondaryAccent rounded-md hover:ring-2 hover:ring-white disabled:opacity-50'

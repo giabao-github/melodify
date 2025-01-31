@@ -13,16 +13,17 @@ import AddToPlaylistModal from './AddPlaylistModal';
 
 interface SongItemProps {
   data: Song;
-  playlists: Playlist[];
+  songs: Song[];
   onClick: (id: string) => void;
 }
 
-const SongItem: React.FC<SongItemProps> = ({ data, playlists, onClick }) => {
+const SongItem: React.FC<SongItemProps> = ({ data, songs, onClick }) => {
   const imagePath = useLoadImage(data);
   const optionsModal = useOptionsModal();
   const { user } = useUser();
   const artists = data.author.split(',');
   const [isOpen, setIsOpen] = useState(false);
+
 
   const handleAddToPlaylist = () => {
     if (!user) {
@@ -31,7 +32,7 @@ const SongItem: React.FC<SongItemProps> = ({ data, playlists, onClick }) => {
       return optionsModal.onOpen();
     }
     setIsOpen(true);
-  };
+  }
 
   return (
     <>
@@ -39,8 +40,8 @@ const SongItem: React.FC<SongItemProps> = ({ data, playlists, onClick }) => {
         <AddToPlaylistModal 
           isOpen={isOpen}
           onClose={() => setIsOpen(false)}
-          playlists={playlists}
           selectedSong={data}
+          songs={songs}
         />
       )}
       <div

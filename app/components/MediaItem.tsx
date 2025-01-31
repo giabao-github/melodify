@@ -1,13 +1,17 @@
 "use client";
 
-import useLoadImage from '../hooks/useLoadImage';
-import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
+import toast from 'react-hot-toast';
 import { GoKebabHorizontal } from 'react-icons/go';
 import { PiPlusCircleBold } from 'react-icons/pi';
 import { IoRadio, IoPersonOutline, IoShareOutline, IoRemoveCircleOutline } from 'react-icons/io5';
+import { useSupabaseClient } from '@supabase/auth-helpers-react';
 import { Song } from '../../types';
 import usePlayer from '../hooks/usePlayer';
+import useLoadImage from '../hooks/useLoadImage';
+import { useUser } from '../hooks/useUser';
+import usePlaylist from '../hooks/usePlaylist';
 
 
 interface MediaItemProps {
@@ -18,7 +22,11 @@ interface MediaItemProps {
 }
 
 const MediaItem: React.FC<MediaItemProps> = ({ data, activeSong, onClick, type }) => {
+  const { user } = useUser();
+  const { setIds, setId } = usePlayer();
+  const supabaseClient = useSupabaseClient();
   const player = usePlayer();
+  const playlist = usePlaylist();
   const imageUrl = useLoadImage(data);
   const [showOptions, setShowOptions] = useState(false);
   const optionsRef = useRef<HTMLDivElement | null>(null);
@@ -26,7 +34,11 @@ const MediaItem: React.FC<MediaItemProps> = ({ data, activeSong, onClick, type }
   const genres = data.genre.split(',');
 
   const handleClick = () => {
+    if (type === 'library') {
+      setIds(playlist.selectedPlaylist?.songs?.map(String) || []);
+    }
     if (onClick) {
+      setId(data.id);
       return onClick(data.id);
     }
     return player.setId(data.id);
@@ -37,8 +49,44 @@ const MediaItem: React.FC<MediaItemProps> = ({ data, activeSong, onClick, type }
     setShowOptions(prev => !prev);
   }
 
-  const handleOptionSelect = (option: string) => {
+  const handleOptionSelect = async (option: string) => {
     setShowOptions(false);
+    if (option === 'remove') {
+      const { data: removedData, error } = await supabaseClient
+        .from('playlists')
+        .select('songs')
+        .eq('user_id', user?.id)
+        .eq('id', playlist.selectedPlaylist?.id)
+        .single();
+
+      if (error) {
+        toast.remove();
+        toast.error('Failed to fetch playlist data');
+        return;
+      }
+
+      let currentSongs: string[] = removedData?.songs || [];
+
+      if (currentSongs.includes(data.id)) {
+        const updatedSongs = currentSongs.filter(songId => songId !== data.id);
+
+        const { error } = await supabaseClient
+          .from('playlists')
+          .update({
+            songs: updatedSongs,
+          })
+          .eq('user_id', user?.id)
+          .eq('id', playlist.selectedPlaylist?.id);
+        
+        if (error) {
+          toast.remove();
+          return toast.error(`Failed to remove ${data.title} from ${playlist.selectedPlaylist?.name}`);
+        }
+      } else {
+        toast.remove();
+        return toast.error(`${data.title} does not exist in ${playlist.selectedPlaylist?.name}`);
+      }
+    }
   }
 
   const formatTime = (seconds: number) => {
@@ -193,7 +241,7 @@ const MediaItem: React.FC<MediaItemProps> = ({ data, activeSong, onClick, type }
               className='hover:bg-neutral-700 p-2 rounded cursor-pointer flex flex-row items-center'
             >
               <IoRemoveCircleOutline className='mr-3' />
-              Remove from Library
+              Remove from Playlist
             </p>
             <p
               onClick={() => handleOptionSelect('song')}

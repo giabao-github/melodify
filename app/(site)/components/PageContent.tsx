@@ -121,7 +121,7 @@ const PageContent: React.FC<PageContentProps> = ({ songs, playlists }) => {
     if (user && targetSong) {
       fetchAllSongs();
     }
-  }, [ids, setIds, supabaseClient, targetSong, user]);
+  }, [supabaseClient, targetSong, user]);
 
   if (songs.length === 0) {
     return (
@@ -147,7 +147,7 @@ const PageContent: React.FC<PageContentProps> = ({ songs, playlists }) => {
             onClick={(id: string) => onPlay(id)}
             key={item.id}
             data={item}
-            playlists={playlists}
+            songs={songs}
           />
         ))}
       </div>

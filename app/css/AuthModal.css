@@ -14,14 +14,14 @@ button {
   border: #f0b94a 1px solid !important;
 }
 
-.supabase-auth-ui_ui-button[type="submit"] {
+.supabase-auth-ui_ui-button[type='submit'] {
   color: #000;
   font-weight: 800;
   text-transform: uppercase;
   font-size: 16px;
 }
 
-.supabase-auth-ui_ui-button:hover[type="submit"] {
+.supabase-auth-ui_ui-button:hover[type='submit'] {
   scale: 105%;
   background-color: #f0b94a !important;
 }
@@ -31,7 +31,13 @@ button {
 }
 
 .supabase-auth-ui_ui-input:focus {
-  border: #e4a020 3px solid !important;
+  outline: none !important;
+  border: none !important;
+  box-shadow: 0 0 0 1px #e4a200 !important;
+}
+
+.supabase-auth-ui_ui-input:hover {
+  border-color: #e4a200 !important;
 }
 
 .supabase-auth-ui_ui-input::placeholder {
