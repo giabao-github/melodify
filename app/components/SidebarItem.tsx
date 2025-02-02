@@ -22,7 +22,7 @@ const SidebarItem: React.FC<SidebarItemProps> = ({icon: Icon, label, active, hre
     <div onClick={handleClick}>
       <Link 
         href={href}
-        className={twMerge(`flex flex-row h-auto items-center w-full gap-x-4 text-md font-medium cursor-pointer hover:text-primaryAccent transition text-white px-4 py-3`, active && 'text-primaryAccent bg-gray-800 rounded-3xl shadow-lg')}>
+        className={twMerge(`flex flex-row h-auto items-center w-full gap-x-4 text-md select-none font-medium cursor-pointer hover:text-primaryAccent transition text-white px-4 py-3`, active && 'text-primaryAccent bg-gray-800 rounded-3xl shadow-lg')}>
         <Icon size={28} />
         <p className='truncate w-full font-bold text-xl'>{label}</p>
       </Link>

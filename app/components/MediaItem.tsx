@@ -7,35 +7,43 @@ import { GoKebabHorizontal } from 'react-icons/go';
 import { PiPlusCircleBold } from 'react-icons/pi';
 import { IoRadio, IoPersonOutline, IoShareOutline, IoRemoveCircleOutline } from 'react-icons/io5';
 import { useSupabaseClient } from '@supabase/auth-helpers-react';
-import { Song } from '../../types';
+import { Playlist, Song } from '../../types';
 import usePlayer from '../hooks/usePlayer';
 import useLoadImage from '../hooks/useLoadImage';
 import { useUser } from '../hooks/useUser';
 import usePlaylist from '../hooks/usePlaylist';
+import AddToPlaylistModal from './AddPlaylistModal';
+import useOptionsModal from '../hooks/useOptionsModal';
 
 
 interface MediaItemProps {
   data: Song;
   activeSong?: Song;
+  songs: Song[];
+  selectedPlaylist?: Playlist | null;
   onClick?: (id: string) => void;
   type?: string;
 }
 
-const MediaItem: React.FC<MediaItemProps> = ({ data, activeSong, onClick, type }) => {
+const MediaItem: React.FC<MediaItemProps> = ({ data, activeSong, songs, selectedPlaylist, onClick, type }) => {
   const { user } = useUser();
   const { setIds, setId } = usePlayer();
   const supabaseClient = useSupabaseClient();
   const player = usePlayer();
   const playlist = usePlaylist();
   const imageUrl = useLoadImage(data);
+  const optionsModal = useOptionsModal();
+  const { playlists, setExistId, setSelectedPlaylist } = usePlaylist();
+  const [isOpen, setIsOpen] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
+  const addRef = useRef<HTMLDivElement | null>(null);
   const optionsRef = useRef<HTMLDivElement | null>(null);
   const buttonRef = useRef<HTMLDivElement | null>(null);
   const genres = data.genre.split(',');
 
   const handleClick = () => {
     if (type === 'library') {
-      setIds(playlist.selectedPlaylist?.songs?.map(String) || []);
+      setIds(playlist.activePlaylist?.songs?.map(String) || []);
     }
     if (onClick) {
       setId(data.id);
@@ -56,7 +64,7 @@ const MediaItem: React.FC<MediaItemProps> = ({ data, activeSong, onClick, type }
         .from('playlists')
         .select('songs')
         .eq('user_id', user?.id)
-        .eq('id', playlist.selectedPlaylist?.id)
+        .eq('id', playlist.activePlaylist?.id)
         .single();
 
       if (error) {
@@ -70,21 +78,54 @@ const MediaItem: React.FC<MediaItemProps> = ({ data, activeSong, onClick, type }
       if (currentSongs.includes(data.id)) {
         const updatedSongs = currentSongs.filter(songId => songId !== data.id);
 
-        const { error } = await supabaseClient
+        const { data: updatedData, error } = await supabaseClient
           .from('playlists')
-          .update({
-            songs: updatedSongs,
-          })
+          .update({ songs: updatedSongs })
           .eq('user_id', user?.id)
-          .eq('id', playlist.selectedPlaylist?.id);
-        
+          .eq('id', playlist.activePlaylist?.id)
+          .select();
+
         if (error) {
           toast.remove();
-          return toast.error(`Failed to remove ${data.title} from ${playlist.selectedPlaylist?.name}`);
-        }
+          return toast.error(`Failed to remove ${data.title} from ${playlist.activePlaylist?.name}`);
+        } 
+
+          playlist.setActivePlaylist(updatedData[0]);
+          const updatedPlaylists = playlists.map(playlist => playlist.id === updatedData[0].id ? updatedData[0] : playlist);
+          playlist.setPlaylists(updatedPlaylists);
+
+          toast.remove();
+          return toast.success(`Removed ${data.title} from ${playlist.activePlaylist?.name}`);
       } else {
         toast.remove();
-        return toast.error(`${data.title} does not exist in ${playlist.selectedPlaylist?.name}`);
+        return toast.error(`${data.title} does not exist in ${playlist.activePlaylist?.name}`);
+      }
+    }
+  }
+
+  const handleAddToPlaylist = async () => {
+    if (!user) {
+      optionsModal.setTitle('Login required');
+      optionsModal.setDescription('You need to login first in order to create your own playlists');
+      return optionsModal.onOpen();
+    }
+    setIsOpen(true);
+    for (const singlePlaylist of playlists) {
+      const { data: playlistData } = await supabaseClient
+      .from('playlists')
+      .select('songs')
+      .eq('user_id', user?.id)
+      .eq('id', singlePlaylist.id)
+      .single();
+
+      let currentSongs: string[] = playlistData?.songs || [];
+
+      // Check if the song is already in the playlist
+      if (currentSongs.includes(data.id)) {
+        setExistId(data.id);
+        return;
+      } else {
+        setExistId('');
       }
     }
   }
@@ -126,11 +167,22 @@ const MediaItem: React.FC<MediaItemProps> = ({ data, activeSong, onClick, type }
 
   return (
     <div>
+      {isOpen && (
+        <AddToPlaylistModal 
+          isOpen={isOpen}
+          onClose={() => {
+            setIsOpen(false);
+            setSelectedPlaylist(null);
+          }}
+          selectedSong={data}
+          songs={songs}
+        />
+      )}
       <div
         onClick={handleClick}
-        className={`flex items-center gap-x-3 cursor-pointer ${activeSong && activeSong.id === data.id ? 'bg-gradient-to-r from-purple-800 to-purple-500' : ''} hover:bg-gradient-to-r from-purple-800 to-purple-500 w-full h-full px-3 py-2 rounded-md select-none`}
+        className={`flex items-center gap-x-3 cursor-pointer ${activeSong && activeSong.id === data.id ? 'bg-gradient-to-r from-purple-800 to-purple-500' : ''} hover:bg-gradient-to-r from-purple-800 to-purple-500 w-full h-full px-2 rounded-md select-none`}
       >
-        <div className='relative rounded-md min-h-[48px] min-w-[48px] overflow-hidden'>
+        <div className='relative rounded-md min-h-[56px] min-w-[56px] overflow-hidden'>
           <Image
             className='object-cover'
             src={imageUrl || '/images/liked.png'}
@@ -144,27 +196,27 @@ const MediaItem: React.FC<MediaItemProps> = ({ data, activeSong, onClick, type }
         {type === 'library' && (
           <div
             title={`${data.title} - ${data.author}`} 
-            className='flex flex-col gap-y-1 overflow-hidden'
+            className='flex flex-col justify-center gap-y-1 overflow-hidden py-2'
           >
             <p className='text-white text-base font-medium truncate'>
-              {data.title.length > 18 ? data.title.slice(0, 18) + '...' : data.title}
+              {data.title.length > 20 ? data.title.slice(0, 20) + '...' : data.title}
             </p>
-            <div className={`flex justify-between min-w-[168px]`}>
+            <div className={`flex justify-between min-w-[186px]`}>
               <p className='text-neutral-300 text-sm font-medium truncate'>
-                {data.author.length > 16 ? data.author.slice(0, 16) + '...' : data.author}
+                {data.author.length > 20 ? data.author.slice(0, 20) + '...' : data.author}
               </p>
               <div ref={buttonRef}>
                 <GoKebabHorizontal 
                   onClick={handleOptionClick}
                   size={24}
-                  className='p-[2px] text-white hover:text-primaryAccent hover:bg-neutral-600/40 hover:stroke-1 cursor-pointer transition rounded-full' 
+                  className='text-white hover:text-primaryAccent cursor-pointer transition' 
                 />
               </div>
             </div>
           </div>
         )}
         {type === 'search' && (
-          <div className='flex flex-row justify-between gap-y-1 overflow-hidden w-full'>
+          <div className='flex flex-row justify-between gap-y-1 overflow-hidden w-full py-3'>
             <div className='flex flex-col'>
               <p className='text-white text-base font-medium truncate'>
                 {data.title.length > 100 ? data.title.slice(0, 100) + '...' : data.title}
@@ -187,10 +239,18 @@ const MediaItem: React.FC<MediaItemProps> = ({ data, activeSong, onClick, type }
                     </span>
                   ))}
                 </div>
-                <PiPlusCircleBold
-                  size={24}
-                  className='p-[2px] text-white hover:text-primaryAccent hover:bg-neutral-600/40 hover:stroke-1 cursor-pointer transition rounded-full' 
-                />
+                <div 
+                  ref={addRef}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    handleAddToPlaylist();
+                  }}
+                >
+                  <PiPlusCircleBold
+                    size={24}
+                    className='p-[2px] text-white hover:text-primaryAccent hover:bg-neutral-600/40 hover:stroke-1 cursor-pointer transition rounded-full' 
+                  />
+                </div>
                 <span className='mx-20'>{formatTime(data.duration)}</span>
                 <div ref={buttonRef}>
                   <GoKebabHorizontal 
@@ -204,7 +264,7 @@ const MediaItem: React.FC<MediaItemProps> = ({ data, activeSong, onClick, type }
           </div>
         )}
         {type === 'player' && (
-          <div className='flex flex-row gap-y-1 overflow-hidden'>
+          <div className='flex flex-row gap-y-1 overflow-hidden py-3'>
             <div className='flex flex-col max-w-fit'>
               <p className='text-white text-base font-medium truncate'>
                 {data.title.length > 30 ? data.title.slice(0, 30) + '...' : data.title}
@@ -220,7 +280,7 @@ const MediaItem: React.FC<MediaItemProps> = ({ data, activeSong, onClick, type }
         {type === 'playlist' && (
           <div
             title={`${data.title} - ${data.author}`} 
-            className='flex flex-col gap-y-1 overflow-hidden'
+            className='flex flex-col gap-y-1 overflow-hidden py-3'
           >
             <p className='text-white text-base font-medium truncate'>
               {data.title.length > 150 ? data.title.slice(0, 150) + '...' : data.title}

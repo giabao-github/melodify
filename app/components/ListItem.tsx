@@ -31,7 +31,7 @@ const ListItem: React.FC<ListItemProps> = ({image, name, href, alt}) => {
   return (
     <button 
       onClick={onClick}
-      className='w-4/6 2xl:w-1/4 xl:w-1/4 lg:w-1/2 md:w-1/2 relative group flex items-center rounded-md overflow-hidden gap-x-4 bg-neutral-100/10 hover:bg-neutral-100/20 transition pr-4'>
+      className='w-4/6 2xl:w-1/4 xl:w-1/4 lg:w-1/2 md:w-1/2 relative group flex items-center rounded-md overflow-hidden select-none gap-x-4 bg-neutral-100/10 hover:bg-neutral-100/20 transition pr-4'>
       <div className='relative min-h-[64px] min-w-[64px]'>
         <Image 
           className='object-cover rounded-md' 

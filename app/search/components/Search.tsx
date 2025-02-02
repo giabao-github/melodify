@@ -40,7 +40,7 @@ const Search: React.FC<SearchProps> = ({ title, authors }) => {
     <div className='bg-neutral-900 rounded-lg h-full w-full overflow-hidden overflow-y-auto'>
       <Header>
         <div className='mb-2 flex flex-col gap-y-6'>
-          <h1 className='text-white text-4xl font-bold my-4 mx-4'>Search</h1>
+          <h1 className='text-white text-4xl font-bold my-6 mx-4'>Search</h1>
           <SearchInput />
           <GenreFilter genres={genres} selectedGenres={selectedGenres} setSelectedGenres={setSelectedGenres} />
         </div>

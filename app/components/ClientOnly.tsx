@@ -1,8 +1,7 @@
 "use client";
 
-
-import { SessionProvider } from 'next-auth/react';
 import { useEffect, useState } from 'react';
+import { SessionProvider } from 'next-auth/react';
 
 
 interface ClientOnlyProps {

@@ -1,12 +1,12 @@
 "use client";
 
-import useDebounce from '../hooks/useDebounce';
+import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
 import queryString from 'query-string';
-import Input from './Input';
 import { CiSearch } from 'react-icons/ci';
 import { IoCloseCircle } from 'react-icons/io5';
+import useDebounce from '../hooks/useDebounce';
+import Input from './Input';
 
 
 const SearchInput = () => {

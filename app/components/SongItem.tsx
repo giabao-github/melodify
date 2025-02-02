@@ -1,13 +1,15 @@
 "use client";
 
-import useLoadImage from '../hooks/useLoadImage';
-import Image from 'next/image';
 import React, { useState } from 'react';
-import PlayButton from './PlayButton';
-import AddButton from './AddButton';
+import Image from 'next/image';
+import { useSupabaseClient } from '@supabase/auth-helpers-react';
+import useLoadImage from '../hooks/useLoadImage';
 import useOptionsModal from '../hooks/useOptionsModal';
 import { useUser } from '../hooks/useUser';
-import { Playlist, Song } from '../../types';
+import usePlaylist from '../hooks/usePlaylist';
+import { Song } from '../../types';
+import PlayButton from './PlayButton';
+import AddButton from './AddButton';
 import AddToPlaylistModal from './AddPlaylistModal';
 
 
@@ -21,17 +23,37 @@ const SongItem: React.FC<SongItemProps> = ({ data, songs, onClick }) => {
   const imagePath = useLoadImage(data);
   const optionsModal = useOptionsModal();
   const { user } = useUser();
+  const { playlists, setExistId, setSelectedPlaylist } = usePlaylist();
+  const supabaseClient = useSupabaseClient();
   const artists = data.author.split(',');
   const [isOpen, setIsOpen] = useState(false);
 
 
-  const handleAddToPlaylist = () => {
+  const handleAddToPlaylist = async () => {
     if (!user) {
       optionsModal.setTitle('Login required');
-      optionsModal.setDescription('You need to login first in order to create your own library');
+      optionsModal.setDescription('You need to login first in order to create your own playlists');
       return optionsModal.onOpen();
     }
     setIsOpen(true);
+    for (const singlePlaylist of playlists) {
+      const { data: playlistData } = await supabaseClient
+      .from('playlists')
+      .select('songs')
+      .eq('user_id', user?.id)
+      .eq('id', singlePlaylist.id)
+      .single();
+
+      let currentSongs: string[] = playlistData?.songs || [];
+
+      // Check if the song is already in the playlist
+      if (currentSongs.includes(data.id)) {
+        setExistId(data.id);
+        return;
+      } else {
+        setExistId('');
+      }
+    }
   }
 
   return (
@@ -39,13 +61,16 @@ const SongItem: React.FC<SongItemProps> = ({ data, songs, onClick }) => {
       {isOpen && (
         <AddToPlaylistModal 
           isOpen={isOpen}
-          onClose={() => setIsOpen(false)}
+          onClose={() => {
+            setIsOpen(false);
+            setSelectedPlaylist(null);
+          }}
           selectedSong={data}
           songs={songs}
         />
       )}
       <div
-        className='w-64 relative group flex flex-col items-center justify-center rounded-md overflow-hidden gap-x-4 bg-neutral-400/5 cursor-pointer hover:bg-neutral-400/15 transition p-3'
+        className='w-64 relative group flex flex-col items-center justify-center rounded-md select-none overflow-hidden gap-x-4 bg-neutral-400/5 cursor-pointer hover:bg-neutral-400/15 transition p-3'
       >
         <div className='relative aspect-square w-full h-full rounded-md overflow-hidden'>
           <Image

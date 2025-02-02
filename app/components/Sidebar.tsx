@@ -1,17 +1,17 @@
 "use client";
 
+import { useMemo } from 'react';
 import { usePathname} from 'next/navigation';
 import { GoHomeFill } from 'react-icons/go';
 import { FaSearch } from 'react-icons/fa';
 import { RiAiGenerate } from 'react-icons/ri';
-import { useMemo } from 'react';
+import { Alexandria } from 'next/font/google';
+import { twMerge } from 'tailwind-merge';
+import usePlayer from '../hooks/usePlayer';
+import { Playlist, Song } from '../../types';
 import Box from './Box';
 import SidebarItem from './SidebarItem';
 import Library from './Library';
-import usePlayer from '../hooks/usePlayer';
-import { twMerge } from 'tailwind-merge';
-import { Alexandria } from 'next/font/google';
-import { Playlist, Song } from '../../types';
 
 
 const rowdies = Alexandria({ weight: '400', subsets: ['latin', 'vietnamese', 'arabic']});
@@ -69,7 +69,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children, songs, playlists }) => {
             ))}
           </div>
         </Box>
-        <Box className='overflow-y-auto h-full py-1'>
+        <Box className='overflow-y-auto bg-neutral-900 h-full'>
           <Library songs={songs} playlists={playlists} />
         </Box>
       </div>

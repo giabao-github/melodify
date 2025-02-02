@@ -12,6 +12,7 @@ export interface Song {
   play_count: number,
   song_path: string;
   image_path: string;
+  created_at: string;
   access_type: string;
 }
 

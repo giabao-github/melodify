@@ -10,7 +10,7 @@ interface ProgressBarProps {
 }
 
 const ProgressBar: React.FC<ProgressBarProps> = ({ sound }) => {
-  const { progressBarDuration, playedDuration, setProgressBarDuration, setPlayedDuration } = useProgressBar();
+  const { progressBarDuration, playedDuration, setPlayedDuration } = useProgressBar();
 
   const handleProgressBarClick = (e: MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();

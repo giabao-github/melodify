@@ -1,12 +1,12 @@
 "use client";
 
-import useAuthModal from '../hooks/useAuthModal';
-import { useUser } from '../hooks/useUser';
-import { useSessionContext } from '@supabase/auth-helpers-react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { FaHeart, FaRegHeart } from 'react-icons/fa6';
+import { useSessionContext } from '@supabase/auth-helpers-react';
+import useAuthModal from '../hooks/useAuthModal';
+import { useUser } from '../hooks/useUser';
 
 
 interface LikeButtonProps {

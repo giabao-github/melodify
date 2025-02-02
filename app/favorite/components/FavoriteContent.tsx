@@ -21,7 +21,7 @@ const FavoriteContent: React.FC<FavoriteContentProps> = ({ songs }) => {
   const onPlay = useOnPlay(songs);
 
   const handleLogin = () => {
-    setTitle('Choose an authentication option');
+    setTitle('Choose one option');
     setDescription('Only authenticated users are allowed to create favorite playlists');
     onOpen();
   }
@@ -63,6 +63,7 @@ const FavoriteContent: React.FC<FavoriteContentProps> = ({ songs }) => {
             <MediaItem
               onClick={(id) => onPlay(id)}
               data={song}
+              songs={songs}
               type='search'
             />
           </div>

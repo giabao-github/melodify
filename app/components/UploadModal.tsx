@@ -103,11 +103,11 @@ const UploadModal = () => {
         .from('songs')
         .insert({
           user_id: user.id,
-          title: values.title,
-          author: values.author,
-          album: values.album,
-          genre: values.genre,
-          lyrics: values.lyrics,
+          title: values.title.trim(),
+          author: values.author.trim(),
+          album: values.album?.trim() || '',
+          genre: values.genre.trim(),
+          lyrics: values.lyrics?.trim() || '',
           song_path: songData.path,
           image_path: imageData.path,
         });

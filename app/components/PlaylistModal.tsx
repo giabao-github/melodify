@@ -27,6 +27,7 @@ const PlaylistModal: React.FC<PlaylistModalProps> = ({ songs, activeSong }) => {
                 key={item.id}
                 data={item}
                 activeSong={activeSong}
+                songs={songs}
                 type='playlist'
               />
             ))

@@ -447,10 +447,10 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, allSongs, songUrl }
   return (
     <div className='grid grid-cols-6 md:grid-cols-5 h-full w-full'>
       <div className='flex w-full justify-start items-center'>
-        <div className='flex items-center gap-x-4 ml-2'>
+        <div className='flex justify-center items-center gap-x-4 ml-2'>
           <LikeButton songId={song.id} />
           <div onClick={handleShowPlaylist}>
-            <MediaItem data={song} type='player' />
+            <MediaItem data={song} songs={allSongs} type='player' />
           </div>
         </div>
       </div>

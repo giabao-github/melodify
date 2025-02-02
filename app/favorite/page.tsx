@@ -25,7 +25,7 @@ const Favorite = async () => {
               />
             </div>
             <div className='flex flex-col gap-y-6 mt-4 md:mt-0'>
-              <p className='hidden md:flex md:flex-row md:items-center font-semibold text-lg ml-1'>
+              <p className='hidden md:flex md:flex-row md:items-center font-semibold text-xl ml-1'>
                 <RiPlayListFill className='mr-2' />
                 Playlist
               </p>

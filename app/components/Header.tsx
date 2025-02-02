@@ -12,6 +12,11 @@ import { useSupabaseClient } from '@supabase/auth-helpers-react';
 import { useUser } from '../hooks/useUser';
 import useAuthModal from '../hooks/useAuthModal';
 import Button from './Button';
+import useSubscribeModal from '../hooks/useSubscribeModal';
+import useUploadModal from '../hooks/useUploadModal';
+import useOptionsModal from '../hooks/useOptionsModal';
+import usePlaylistModal from '../hooks/usePlaylistModal';
+import useLyricsModal from '../hooks/useLyricsModal';
 
 
 const colorThemes = [
@@ -32,22 +37,29 @@ const colorThemes = [
   { name: 'Crimson Wave', themeColor: 'from-[#8B0000]', bgColor: 'bg-[#8B0000]', textColor: 'text-white' },
 ];
 
+const adminEmails = ['khophim.sonicthehedgehog@gmail.com'];
+
 interface HeaderProps {
   children: React.ReactNode;
   className?: string;
 }
 
 const Header: React.FC<HeaderProps> = ({children, className}) => {
+  const router = useRouter();
+  const { setButtonClick, onOpen } = useAuthModal();
+  const subscribeModal = useSubscribeModal();
+  const lyricsModal = useLyricsModal();
+  const playlistModal = usePlaylistModal();
+  const optionsModal = useOptionsModal();
+  const uploadModal = useUploadModal();
   const [userState, setUserState] = useState<boolean | null>(null);
   const [hasShownWelcomeToast, setHasShownWelcomeToast] = useState(false);
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const dropdownRef = useRef<HTMLDivElement | null>(null); 
-  const router = useRouter();
-  const { setButtonClick, onOpen } = useAuthModal();
   
   const supabaseClient = useSupabaseClient();
-  const { user, theme, index, setThemeGlobally, userDetails } = useUser();
+  const { user, subscription, theme, index, setThemeGlobally, userDetails } = useUser();
   const [themeIndex, setThemeIndex] = useState(index >= 0 ? index : 0);
   const [themeName, setThemeName] = useState(theme || '');
 
@@ -63,6 +75,27 @@ const Header: React.FC<HeaderProps> = ({children, className}) => {
       toast.remove();
       toast.success('Logged out');
     }
+  }
+
+  const handleAddSong = () => {
+    lyricsModal.onClose();
+    playlistModal.onClose();
+
+    if (!user) {
+      optionsModal.setTitle('Login required');
+      optionsModal.setDescription('You need to login first in order to create your own playlists');
+      lyricsModal.onClose();
+      playlistModal.onClose();
+      return optionsModal.onOpen();
+    }
+
+    if (!subscription) {
+      lyricsModal.onClose();
+      playlistModal.onClose();
+      return subscribeModal.onOpen();
+    }
+
+    return uploadModal.onOpen();
   }
 
   useEffect(() => {
@@ -260,6 +293,14 @@ const Header: React.FC<HeaderProps> = ({children, className}) => {
           <div className='flex justify-between items-center gap-x-4'>
             {userState ? (
               <div className='flex gap-x-6 items-center'>
+                {user?.email && adminEmails.includes(user.email) && (
+                  <Button
+                    onClick={handleAddSong}
+                    className='bg-white hover:bg-white/75 hover:opacity-100 px-6 py-2 whitespace-nowrap transition-none'
+                  >
+                    Add song
+                  </Button>
+                )}
                 <Button
                   onClick={handleLogout}
                   className='bg-white hover:bg-white/75 hover:opacity-100 px-6 py-2 whitespace-nowrap transition-none'

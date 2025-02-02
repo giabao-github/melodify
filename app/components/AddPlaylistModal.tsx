@@ -1,5 +1,5 @@
+import { useRef, useMemo, useCallback } from 'react';
 import Image from 'next/image';
-import { useState, useCallback } from 'react';
 import { FaTimes, FaMusic, FaPlus } from 'react-icons/fa';
 import { Playlist, Song } from '../../types';
 import toast from 'react-hot-toast';
@@ -19,10 +19,11 @@ interface AddPlaylistModalProps {
 
 const AddToPlaylistModal: React.FC<AddPlaylistModalProps> = ({ isOpen, onClose, selectedSong, songs }) => {
   const { user } = useUser();
-  const playlist = usePlaylist();
+  const { playlists, existId, selectedPlaylist, setIsCreateOpen, setPlaylists, setSelectedPlaylist, setActivePlaylist } = usePlaylist();
   const songArtworkUrl = useLoadImage(selectedSong);
   const supabaseClient = useSupabaseClient();
-  const [selectedPlaylist, setSelectedPlaylist] = useState<Playlist | null>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+
 
   const handleConfirm = async () => {
     if (!selectedPlaylist) {
@@ -57,11 +58,12 @@ const AddToPlaylistModal: React.FC<AddPlaylistModalProps> = ({ isOpen, onClose, 
       const updatedSongs = [...currentSongs, selectedSong.id];
 
       // Update the playlist with the new songs array
-      const { error: updateError } = await supabaseClient
+      const { data: updatedData, error: updateError } = await supabaseClient
         .from('playlists')
         .update({ songs: updatedSongs })
         .eq('id', selectedPlaylist.id)
-        .eq('user_id', user?.id);
+        .eq('user_id', user?.id)
+        .select();
   
       if (updateError) {
         toast.remove();
@@ -69,20 +71,17 @@ const AddToPlaylistModal: React.FC<AddPlaylistModalProps> = ({ isOpen, onClose, 
         return;
       }
 
-      playlist.setPlaylists([...playlist.playlists, { ...selectedPlaylist, songs: updatedSongs.map(Number) }])
+      setActivePlaylist(updatedData[0]);
+      const updatedPlaylists = playlists.map(playlist => playlist.id === updatedData[0].id ? updatedData[0] : playlist);
+      setPlaylists(updatedPlaylists);
 
       toast.remove();
       toast.success(`Added ${selectedSong.title} to ${selectedPlaylist.name}`);
       onClose();
     } catch (err) {
       toast.remove();
-      toast.error('Something went wrong');
+      toast.error(err);
     }
-  }
-
-
-  if (!isOpen)  {
-    return null;
   }
 
   const formatDuration = (seconds: number) => {
@@ -91,28 +90,31 @@ const AddToPlaylistModal: React.FC<AddPlaylistModalProps> = ({ isOpen, onClose, 
     return `${minutes >= 10 ? minutes : `0${minutes}`}:${remainingSeconds.toString().padStart(2, '0')}`;
   }
 
-  const getPlaylistThumbnail = (playlist: Playlist) => {
-    if (playlist.songs.length === 0) {
+  const getPlaylistThumbnail = useCallback((currentPlaylist: Playlist) => {
+    if (currentPlaylist.songs.length === 0) {
       return (
-        <div className='w-full h-full bg-secondary flex items-center justify-center'>
-          <FiMusic className='text-2xl text-white' />
+        <div className='w-full h-full flex items-center justify-center'>
+          <FiMusic className='text-2xl' />
         </div>
       );
     }
 
-    const playlistSongs = songs.filter((song) => playlist?.songs.toString().includes(song.id));
+    const songsMap = new Map(songs.map((song) => [Number(song.id), song]));
+    const playlistSongs = currentPlaylist.songs
+      .map((songId) => songsMap.get(songId))
+      .filter((song) => song !== undefined);
 
-    if (playlistSongs.length >= 1) {
+    if (playlistSongs.length >= 1 && playlistSongs[0]) {
       const { data: imageData } = supabaseClient
         .storage
         .from('images')
         .getPublicUrl(playlistSongs[0].image_path);
 
       return (
-        <div className='relative rounded-md min-h-[48px] min-w-[48px] overflow-hidden'>
+        <div className='relative rounded-md min-h-[56px] min-w-[56px] overflow-hidden'>
           <Image
             src={imageData.publicUrl}
-            alt={playlist.name}
+            alt={currentPlaylist.name}
             fill
             sizes='auto auto'
             priority
@@ -121,6 +123,67 @@ const AddToPlaylistModal: React.FC<AddPlaylistModalProps> = ({ isOpen, onClose, 
         </div>
       );
     }
+  }, [songs, supabaseClient.storage]);
+
+  const formatNumberShorthand = (num: number): string => {
+    if (num >= 1e9) {
+      const value = (num / 1e9).toFixed(1);
+      return value.endsWith('.0') ? `${value.slice(0, -2)} B` : `${value} B`;
+    } else if (num >= 1e6) {
+      const value = (num / 1e6).toFixed(1);
+      return value.endsWith('.0') ? `${value.slice(0, -2)} M` : `${value} M`;
+    } else if (num >= 1e3) {
+      const value = (num / 1e3).toFixed(1);
+      return value.endsWith('.0') ? `${value.slice(0, -2)} K` : `${value} K`;
+    } else {
+      return num.toString();
+    }
+  }
+
+  const filteredPlaylists = useMemo(() => {
+    return playlists
+      .sort((a, b) =>
+          a.name.localeCompare(b.name)
+      );
+  }, [playlists]);
+
+  if (!isOpen)  {
+    return (
+      <div className='fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50'>
+        <div className='w-full max-w-md bg-neutral-800 rounded-lg shadow-lg p-6 transform transition-all'>
+          <div className='flex justify-between items-center mb-6'>
+            <h2 className='text-2xl font-bold'>Add to Playlist</h2>
+            <button
+              onClick={onClose}
+              className='p-2 rounded-full transition-colors'
+              aria-label='Close modal'
+            >
+              <FaTimes className='hover:text-neutral-400' />
+            </button>
+          </div>
+
+          <div className='mb-6 text-center'>
+            <div className='relative w-48 h-48 mx-auto mb-4 rounded-lg overflow-hidden'>
+              <Image
+                src={songArtworkUrl || '/images/liked.png'}
+                alt={selectedSong.title}
+                fill
+                className='w-full h-full object-cover'
+              />
+            </div>
+            <h3 className='text-xl font-bold'>{selectedSong.title}</h3>
+            <p className='my-1'>{selectedSong.author}</p>
+            <p className='text-sm'>
+              {formatDuration(selectedSong.duration)}
+            </p>
+          </div>
+
+          <div className='h-60 overflow-y-auto flex justify-center items-center'>
+            <p className='text-base'>Loading playlists...</p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -153,15 +216,15 @@ const AddToPlaylistModal: React.FC<AddPlaylistModalProps> = ({ isOpen, onClose, 
           </p>
         </div>
 
-        <div className='max-h-60 overflow-y-auto mb-6'>
-          {playlist.playlists.length === 0 ? (
+        <div ref={scrollRef} className='max-h-[264px] overflow-y-auto mb-6'>
+          {playlists.length === 0 ? (
             <div className='text-center py-6'>
               <FaMusic className='mx-auto text-4xl mb-3' />
               <p className='mb-6'>No playlists found</p>
               <button
                 onClick={() => {
                   onClose();
-                  playlist.setIsCreateOpen(true);
+                  setIsCreateOpen(true);
                 }} 
                 className='inline-flex items-center px-4 py-2 bg-secondaryAccent rounded-md hover:ring-1 hover:ring-white'
               >
@@ -170,26 +233,38 @@ const AddToPlaylistModal: React.FC<AddPlaylistModalProps> = ({ isOpen, onClose, 
               </button>
             </div>
           ) : (
-            playlist.playlists.map((playlist) => (
-              <button
-                key={playlist.id}
-                onClick={() => setSelectedPlaylist(playlist)}
-                className={`w-full flex items-center p-3 rounded-md mb-2 transition-colors ${selectedPlaylist?.id === playlist.id
-                  ? 'bg-button text-neutral-800'
-                  : 'hover:bg-button hover:text-neutral-800'
-                }`}
-              >
-                <div className='w-12 h-12 border border-neutral-600 rounded-md overflow-hidden mr-3'>
-                  {getPlaylistThumbnail(playlist)}
-                </div>
-                <div className='ml-4 text-left'>
-                  <p className='font-semibold text-lg'>{playlist.name}</p>
-                  <p className='text-sm'>
-                    {`${playlist.songs.length} ${playlist.songs.length > 1 ? 'songs' : 'song'}`}
-                  </p>
-                </div>
-              </button>
-            ))
+            <div className='mx-3'>
+              {filteredPlaylists.map((playlist) => (
+                <button
+                  key={playlist.id}
+                  disabled={playlist.songs.includes(Number(existId))}
+                  onClick={() => {
+                    setSelectedPlaylist(playlist);
+                  }}
+                  className={`w-full flex items-center p-3 rounded-md mb-2 transition-colors disabled:opacity-50 disabled:cursor-default ${selectedPlaylist?.id === playlist.id
+                    ? 'bg-button text-neutral-800'
+                    : playlist.songs.includes(Number(existId)) ?
+                    '' : 
+                    'hover:bg-button hover:text-neutral-900'
+                  }`}
+                >
+                  <div className='w-14 h-14 border border-neutral-600 rounded-md overflow-hidden mr-3'>
+                    {getPlaylistThumbnail(playlist)}
+                  </div>
+                  <div className='ml-4 text-left'>
+                    <p className='font-semibold text-lg'>{playlist.name}</p>
+                    <p className='text-sm'>
+                      {`${formatNumberShorthand(playlist.songs.length)} ${playlist.songs.length > 1 ? 'songs' : 'song'} `}
+                      {playlist.songs.includes(Number(existId)) && (
+                        <span className='italic'>
+                          {`(already included)`}
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                </button>
+              ))}
+            </div>
           )}
         </div>
 
@@ -203,9 +278,9 @@ const AddToPlaylistModal: React.FC<AddPlaylistModalProps> = ({ isOpen, onClose, 
           <button
             onClick={handleConfirm}
             disabled={!selectedPlaylist}
-            className={`bg-button px-4 py-2 rounded-md border border-white transition-colors ${selectedPlaylist
-              ? 'hover:ring-1 hover:ring-white hover:text-neutral-100'
-              : 'opacity-50 cursor-not-allowed'}`}
+            className={`bg-button text-neutral-800 font-semibold px-4 py-2 rounded-md border border-white transition-colors ${selectedPlaylist
+              ? 'hover:ring-1 hover:ring-white'
+              : 'opacity-50 cursor-default'}`}
           >
             Add to Playlist
           </button>

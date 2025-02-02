@@ -37,6 +37,7 @@ const SearchContent: React.FC<SearchContentProps> = ({ title, authors }) => {
             <MediaItem
               onClick={(id) => onPlay(id)}
               data={song}
+              songs={title}
               type='search'
             />
           </div>
@@ -52,6 +53,7 @@ const SearchContent: React.FC<SearchContentProps> = ({ title, authors }) => {
             <MediaItem
               onClick={(id) => onAuthor(id)}
               data={author}
+              songs={authors}
               type='search'
             />
           </div>

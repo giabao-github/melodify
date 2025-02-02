@@ -1,12 +1,11 @@
+import { IoCloseCircle } from 'react-icons/io5';
 import { League_Spartan , Bungee_Inline, Geologica } from 'next/font/google';
-import React from 'react';
-import { IoCloseCircle } from "react-icons/io5";
 import usePlaylistModal from '../hooks/usePlaylistModal';
 
 
-const spartan = League_Spartan({ weight: '400', subsets: ["latin", "vietnamese"]});
-const geologica = Geologica({ subsets: ["latin", "cyrillic", "vietnamese", "greek"]});
-const bungee = Bungee_Inline({ weight: '400' ,subsets: ["latin", "vietnamese"]});
+const spartan = League_Spartan({ weight: '400', subsets: ['latin', 'vietnamese']});
+const geologica = Geologica({ subsets: ['latin', 'cyrillic', 'vietnamese', 'greek']});
+const bungee = Bungee_Inline({ weight: '400' ,subsets: ['latin', 'vietnamese']});
 
 interface InteractiveModalProps {
   type?: string;
