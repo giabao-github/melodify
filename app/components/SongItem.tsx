@@ -70,7 +70,7 @@ const SongItem: React.FC<SongItemProps> = ({ data, songs, onClick }) => {
         />
       )}
       <div
-        className='w-64 relative group flex flex-col items-center justify-center rounded-md select-none overflow-hidden gap-x-4 bg-neutral-400/5 cursor-pointer hover:bg-neutral-400/15 transition p-3'
+        className='w-64 md:w-56 relative group flex flex-col items-center justify-center rounded-md select-none overflow-hidden gap-x-4 bg-neutral-400/5 cursor-pointer hover:bg-neutral-400/15 transition p-3'
       >
         <div className='relative aspect-square w-full h-full rounded-md overflow-hidden'>
           <Image
@@ -84,14 +84,14 @@ const SongItem: React.FC<SongItemProps> = ({ data, songs, onClick }) => {
             alt={data.title}
           />
         </div>
-        <div className='flex flex-col items-start h-1/3 w-full pt-4 px-1 gap-y-1'>
+        <div className='flex flex-col items-start flex-grow w-full pt-4 px-1 gap-y-1'>
           <p
             onClick={() => onClick(data.id)} 
-            className='font-semibold w-full text-lg hover:underline'
+            className='font-semibold w-full 2xl:text-lg md:text-base hover:underline'
           >
             {data.title}
           </p>
-          <p className='text-neutral-400 w-full text-sm'>
+          <p className='text-neutral-400 w-full 2xl:text-sm md:text-xs'>
             {artists.map((artist, index) => (
               <React.Fragment key={index}>
                 <a

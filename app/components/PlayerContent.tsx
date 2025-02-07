@@ -447,7 +447,7 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, allSongs, songUrl }
   return (
     <div className='grid grid-cols-6 md:grid-cols-5 h-full w-full'>
       <div className='flex w-full justify-start items-center'>
-        <div className='flex justify-center items-center gap-x-4 ml-2'>
+        <div className='flex justify-center items-center gap-x-4'>
           <LikeButton songId={song.id} />
           <div onClick={handleShowPlaylist}>
             <MediaItem data={song} songs={allSongs} type='player' />
@@ -455,13 +455,13 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, allSongs, songUrl }
         </div>
       </div>
 
-      <div className='hidden h-full w-full max-w-[328px] gap-x-10 md:flex justify-between items-center'>
+      <div className='hidden h-full w-full max-w-[328px] md:max-w-[245px] gap-x-10 md:gap-x-0 md:flex justify-between items-center md:ml-6'>
         <p
-          className='flex justify-center items-center text-lg font-bold text-white bg-gradient-to-r from-purple-500 to-blue-500 px-3 py-1 rounded-full shadow-md select-none'
+          className='flex justify-center items-center text-lg md:text-base font-bold text-white bg-gradient-to-r from-purple-500 to-blue-500 px-3 py-1 rounded-full shadow-md select-none'
         >
           <ImHeadphones />&nbsp;&nbsp;{formatNumber(song.play_count)}
         </p>
-        <p className='flex justify-center items-center text-lg font-bold text-white bg-gradient-to-r from-purple-500 to-blue-500 px-3 py-1 rounded-full shadow-md select-none'>
+        <p className='flex justify-center items-center text-lg md:text-base font-bold text-white bg-gradient-to-r from-purple-500 to-blue-500 px-3 py-1 rounded-full shadow-md select-none'>
           <FaClock />&nbsp;&nbsp;{formatTime(playedDuration)}&nbsp;&nbsp;|&nbsp;&nbsp;{formatTime(progressBarDuration)}
         </p>
       </div>
@@ -485,7 +485,7 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, allSongs, songUrl }
         />
       </div>
 
-      <div className='hidden h-full w-full max-w-[722px] gap-x-10 md:flex justify-center items-center'>
+      <div className='hidden h-full w-full max-w-[800px] gap-x-10 md:gap-x-6 md:flex justify-center items-center'>
         <FaRepeat
           onClick={toggleLoop}
           size={24}
@@ -499,7 +499,7 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, allSongs, songUrl }
         />
         <div
           onClick={handlePlay}
-          className={`flex items-center justify-center h-16 w-16 rounded-full bg-white hover:bg-primaryAccent cursor-pointer transition ${Icon === FaPlay ? 'pl-1' : ''}`}
+          className={`flex items-center justify-center h-16 w-16 md:h-14 md:w-14 rounded-full bg-white hover:bg-primaryAccent cursor-pointer transition ${Icon === FaPlay ? 'pl-1' : ''}`}
         >
           <Icon size={Icon === FaPlay ? 20 : 24} className='text-black' />
         </div>
@@ -516,10 +516,10 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, allSongs, songUrl }
         />
       </div>
 
-      <div className='hidden h-full w-full max-w-[300px] gap-x-10 md:flex justify-between items-center mx-12'>
+      <div className='hidden h-full w-full max-w-[300px] md:max-w-[260px] gap-x-10 md:gap-x-0 md:flex justify-between items-center mx-[30px]'>
         <button
           onClick={handleSpeed} 
-          className='flex justify-center items-center text-lg font-bold text-white bg-gradient-to-r from-purple-500 to-blue-500 hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 px-3 py-1 rounded-full shadow-md transition-all duration-1000 ease-in-out'
+          className='flex justify-center items-center text-lg md:text-base font-bold text-white bg-gradient-to-r from-purple-500 to-blue-500 hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 px-3 py-1 rounded-full shadow-md transition-all duration-1000 ease-in-out'
         >
           <IoRocket
             className='cursor-pointer'
@@ -530,7 +530,7 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, allSongs, songUrl }
         <button
           title='Show lyrics. Exclusive to Melodify Premium!'
           onClick={handleShowLyrics}
-          className='flex justify-center items-center text-lg font-bold text-white bg-gradient-to-r from-purple-500 to-blue-500 hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 px-3 py-1 rounded-full shadow-md transition-all duration-1000 ease-in-out'
+          className='flex justify-center items-center text-lg md:text-base font-bold text-white bg-gradient-to-r from-purple-500 to-blue-500 hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 px-3 py-1 rounded-full shadow-md transition-all duration-1000 ease-in-out'
         >
           <MdLyrics
             className='cursor-pointer'
@@ -540,11 +540,11 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, allSongs, songUrl }
         </button>
       </div>
 
-      <div className='hidden h-full w-full max-w-[400px] gap-x-0 md:flex justify-between items-center pl-[14px]'>
+      <div className='hidden h-full w-full max-w-[400px] gap-x-0 md:flex justify-between items-center pl-[14px] md:pl-3'>
         <button
           title='Download song. Exclusive to Melodify Premium!'
           onClick={handleDownload}
-          className='flex justify-center items-center text-lg font-bold text-white bg-gradient-to-r from-purple-500 to-blue-500 hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 px-3 py-1 rounded-full shadow-md transition-all duration-1000 ease-in-out'
+          className='flex justify-center items-center text-lg md:text-base font-bold text-white bg-gradient-to-r from-purple-500 to-blue-500 hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 px-3 py-1 rounded-full shadow-md transition-all duration-1000 ease-in-out'
         >
           <FaDownload
             className='cursor-pointer'
@@ -552,7 +552,7 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, allSongs, songUrl }
           />&nbsp;
           {`${subscription ? 'Download' : 'Download 🔒'}`}
         </button>
-        <div className='hidden md:flex items-center gap-x-2 w-[120px] pr-4'>
+        <div className='hidden md:flex items-center gap-x-2 w-[120px] pr-4 md:px-2'>
           <VolumeIcon
             onClick={toggleMute}
             className='cursor-pointer'

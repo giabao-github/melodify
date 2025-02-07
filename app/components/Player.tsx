@@ -23,7 +23,7 @@ const Player = () => {
     <div>
       <title>{`Melodify | ${song.title} - ${song.author}`}</title>
       <ProgressBar sound={sound} /> 
-      <div className='fixed bottom-0 bg-transparent w-full py-2 px-4 h-[90px]'>
+      <div className='fixed bottom-0 bg-transparent w-full py-2 px-4 h-[90px] md:h-[86px]'>
         <PlayerContent
           key={songUrl}
           song={song}

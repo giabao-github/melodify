@@ -187,13 +187,13 @@ const AuthModal = () => {
           },
           style: {
             button: {
-              marginBottom: '12px',
+              marginBottom: '8px',
               border: '#e4a020 solid 1px',
               borderRadius: '50px',
             },
             label: {
               fontWeight: '600',
-              fontSize: '17px',
+              fontSize: '16px',
             },
             input: {
               border: '#fff solid 1px',

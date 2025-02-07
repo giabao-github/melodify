@@ -267,11 +267,11 @@ const MediaItem: React.FC<MediaItemProps> = ({ data, activeSong, songs, selected
           <div className='flex flex-row gap-y-1 overflow-hidden py-3'>
             <div className='flex flex-col max-w-fit'>
               <p className='text-white text-base font-medium truncate'>
-                {data.title.length > 30 ? data.title.slice(0, 30) + '...' : data.title}
+                {data.title.length > 24 ? data.title.slice(0, 24) + '...' : data.title}
               </p>
               <div className={`flex justify-between`}>
                 <p className='text-neutral-300 text-sm font-medium truncate'>
-                  {data.author.length > 32 ? data.author.slice(0, 32) + '...' : data.author}
+                  {data.author.length > 26 ? data.author.slice(0, 26) + '...' : data.author}
                 </p>
               </div>
             </div>

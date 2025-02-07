@@ -420,7 +420,7 @@ const PlaylistContent: React.FC<PlaylistContentProps> = ({ songs, playlists }) =
               className='px-2 py-4 space-y-3'
             >
               {filteredPlaylists.length === 0 && (
-                <div className='h-[440px] flex flex-row gap-x-2 text-neutral-500 font-medium text-lg justify-center items-center select-none'>
+                <div className={`${activeId ? 'h-[350px] md:h-[134px]' : 'h-[440px] md:h-[230px]'} flex flex-row gap-x-2 text-neutral-500 font-medium text-lg justify-center items-center select-none`}>
                   <PiPlaylistBold size={18} />
                   <p>No playlists</p>
                 </div>
