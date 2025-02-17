@@ -54,14 +54,8 @@ const PlaylistContent: React.FC<PlaylistContentProps> = ({ songs, playlists }) =
       .filter(Boolean);
   }, [playlist.activePlaylist?.songs, songs]);
 
-
   const onPlay = useOnPlay((playlistSongs || []).filter((song): song is Song => song !== undefined));
 
-  useEffect(() => {
-    console.log('songs:',songs)
-    console.log('active:', playlist.activePlaylist?.songs);
-    console.log('playlist songs:', playlistSongs)
-}, [playlist.activePlaylist?.songs, playlistSongs, songs])
 
   useEffect(() => {
     playlist.setPlaylists(playlists);
@@ -406,7 +400,7 @@ const PlaylistContent: React.FC<PlaylistContentProps> = ({ songs, playlists }) =
                 }
               </div>
               {playlist.activePlaylist.songs.length === 0 && (
-                <div className='h-[436px] flex flex-row gap-x-2 text-neutral-500 font-medium text-lg justify-center items-center select-none'>
+                <div className={`${activeId ? 'h-[427px]' : 'h-[527px]'} flex flex-row gap-x-2 text-neutral-500 font-medium text-lg justify-center items-center select-none`}>
                   <PiMusicNoteFill size={18} />
                   <p>No songs in this playlist</p>
                 </div>
@@ -420,7 +414,7 @@ const PlaylistContent: React.FC<PlaylistContentProps> = ({ songs, playlists }) =
               className='px-2 py-4 space-y-3'
             >
               {filteredPlaylists.length === 0 && (
-                <div className={`${activeId ? 'h-[350px] md:h-[134px]' : 'h-[440px] md:h-[230px]'} flex flex-row gap-x-2 text-neutral-500 font-medium text-lg justify-center items-center select-none`}>
+                <div className={`${activeId ? '2xl:h-[336px] md:h-[134px]' : '2xl:h-[402px] md:h-[230px]'} flex flex-row gap-x-2 text-neutral-500 font-medium text-lg justify-center items-center select-none`}>
                   <PiPlaylistBold size={18} />
                   <p>No playlists</p>
                 </div>

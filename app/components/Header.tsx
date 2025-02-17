@@ -72,6 +72,7 @@ const Header: React.FC<HeaderProps> = ({children, className}) => {
       toast.error(error.message);
     } else {
       setUserState(false);
+      playlistModal.onClose();
       toast.remove();
       toast.success('Logged out');
     }
@@ -299,6 +300,14 @@ const Header: React.FC<HeaderProps> = ({children, className}) => {
                     className='bg-white hover:bg-white/75 hover:opacity-100 px-6 py-2 whitespace-nowrap transition-none'
                   >
                     Add song
+                  </Button>
+                )}
+                {user?.email && !subscription && (
+                  <Button
+                    onClick={subscribeModal.onOpen}
+                    className='bg-white hover:bg-white/75 hover:opacity-100 px-6 py-2 whitespace-nowrap transition-none'
+                  >
+                    Subscribe
                   </Button>
                 )}
                 <Button

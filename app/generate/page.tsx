@@ -123,6 +123,9 @@ const Generate: React.FC<GenerateProps> = ({}) => {
   };
 
   const formatTime = (time: number) => {
+    if (time < 0 || !time) {
+      time = 0;
+    }
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
     return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
@@ -281,20 +284,41 @@ const Generate: React.FC<GenerateProps> = ({}) => {
 
           {music && (
             <div className='bg-gray-800 rounded-lg p-6 flex flex-col items-center justify-center'>
-              <div className='flex justify-center items-center gap-4 mb-4'>
-                <button
-                  title='Play'
-                  onClick={handlePlayPause}
-                  className='p-4 bg-gray-700 hover:bg-gray-600 rounded-lg text-white flex items-center justify-center'
-                >
-                  {isPlaying ? <FaPause size={24} /> : <FaPlay size={24} />}
-                </button>
+              <div className='flex justify-between items-center gap-4 mb-4 w-full'>
+                <div className='flex flex-row gap-x-4'>
+                  <button
+                    title='Play'
+                    onClick={handlePlayPause}
+                    className='p-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-white flex items-center justify-center'
+                  >
+                    {isPlaying ? <FaPause size={18} /> : <FaPlay size={18} />}
+                  </button>
+                  <div className='flex items-center gap-4'>
+                    <button onClick={handleMute} className='p-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-white flex items-center justify-center'>
+                      {isMuted ? <FaVolumeXmark size={18} /> : <FaVolumeHigh size={18} />}
+                    </button>
+                    <input
+                      title={`Volume: ${volume * 100}%`}
+                      type='range'
+                      min='0'
+                      max='1'
+                      step='0.01'
+                      value={volume}
+                      onChange={handleVolumeChange}
+                      className='h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer custom-slider'
+                      style={{
+                        background: `linear-gradient(to right, rgb(168, 85, 247) ${volume * 100}%, rgb(55, 65, 81) ${volume * 100}%)`,
+                      }}
+                    />
+                    <span className='text-sm text-gray-400 w-full'>Volume: {Math.round(volume * 100)}%</span>
+                  </div>
+                </div>
                 <button
                   title='Download audio'
                   onClick={handleDownload}
-                  className='p-4 bg-gray-700 hover:bg-gray-600 rounded-lg text-white flex items-center justify-center'
+                  className='p-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-white flex items-center justify-center'
                 >
-                  <FaDownload size={24} />
+                  <FaDownload size={18} />
                 </button>
               </div>
               <audio
@@ -322,7 +346,7 @@ const Generate: React.FC<GenerateProps> = ({}) => {
                 />
               </div>
               <div className='flex items-center justify-between text-sm mt-4 text-gray-400'>
-                <span>{formatTime(currentTime)}</span>
+                <span>{formatTime(currentTime)}&nbsp;&nbsp;|&nbsp;&nbsp;</span>
                 <span>{formatTime(maxTime)}</span>
               </div>
               <div className='flex flex-col items-center justify-center mt-4 gap-y-4'>
@@ -331,28 +355,9 @@ const Generate: React.FC<GenerateProps> = ({}) => {
                     title={`Speed: ${playbackSpeed}`}
                     onClick={handleSpeedChange} className='p-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-white flex items-center justify-center'
                   >
-                    <MdSpeed size={20} />
+                    <MdSpeed size={22} />
                   </button>
                   <span className='text-sm text-gray-400'>Speed: {playbackSpeed}x</span>
-                </div>
-                <div className='flex items-center gap-4'>
-                  <button onClick={handleMute} className='p-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-white flex items-center justify-center'>
-                    {isMuted ? <FaVolumeXmark size={20} /> : <FaVolumeHigh size={20} />}
-                  </button>
-                  <input
-                    title={`Volume: ${volume * 100}%`}
-                    type='range'
-                    min='0'
-                    max='1'
-                    step='0.01'
-                    value={volume}
-                    onChange={handleVolumeChange}
-                    className='h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer custom-slider'
-                    style={{
-                      background: `linear-gradient(to right, rgb(168, 85, 247) ${volume * 100}%, rgb(55, 65, 81) ${volume * 100}%)`,
-                    }}
-                  />
-                  <span className='text-sm text-gray-400'>Volume: {Math.round(volume * 100)}%</span>
                 </div>
               </div>
             </div>

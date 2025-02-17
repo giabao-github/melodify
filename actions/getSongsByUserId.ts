@@ -6,7 +6,7 @@ const getSongsByUserId = async () => {
     cookies: cookies
   });
 
-  const { data: userData, error: userError } = await supabase.auth.getUser();
+  const { error: userError } = await supabase.auth.getUser();
 
   if (userError) {
     return [];
@@ -14,9 +14,7 @@ const getSongsByUserId = async () => {
 
   const { data, error } = await supabase
     .from('songs')
-    .select('*')
-    .eq('user_id', userData.user.id)
-    .order('created_at', { ascending: false });
+    .select('*');
 
     if (error) {
       console.log('An unexpected error: ', error.message);

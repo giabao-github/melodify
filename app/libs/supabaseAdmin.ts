@@ -121,6 +121,7 @@ const copyBillingDetailsToCustomer = async (
     .from('users')
     .update({
       billing_address: { ...address },
+      // @ts-ignore
       payment_method: { ...payment_method[payment_method.type] }
     })
     .eq('id', uuid);

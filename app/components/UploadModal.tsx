@@ -81,10 +81,8 @@ const UploadModal = () => {
         toast.remove();
         return toast.error('Upload song failed');
       }
-      console.log("Song uploaded successfully:", songData);
 
       // Upload artwork
-      console.log("Uploading artwork...");
       const { data: imageData, error: imageError } = await supabaseClient
         .storage
         .from('images')
@@ -96,7 +94,6 @@ const UploadModal = () => {
         toast.remove();
         return toast.error('Upload artwork failed');
       }
-      console.log("Artwork uploaded successfully:", imageData);
 
       // Insert the uploaded song to the table 'songs' in database
       const { error: supabaseError } = await supabaseClient

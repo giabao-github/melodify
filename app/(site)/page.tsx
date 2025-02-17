@@ -12,7 +12,6 @@ const geologica = Geologica({ subsets: ['latin', 'cyrillic', 'vietnamese', 'gree
 
 export default async function Home() {
   const songs = await getSongs();
-  const playlists = await getPlaylistsByUserId();
 
   return (
     <div className='bg-neutral-900 rounded-lg h-full w-full overflow-hidden overflow-y-auto'>
@@ -35,7 +34,7 @@ export default async function Home() {
         <div className='flex justify-between items-center px-2 pt-5 pb-10'>
           <h1 className={`text-white text-4xl font-bold ${geologica.className}`}>Recommended For You</h1>
         </div>
-        <PageContent songs={songs} playlists={playlists} />
+        <PageContent songs={songs} />
       </div>
     </div>
   );

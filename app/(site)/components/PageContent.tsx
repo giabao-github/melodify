@@ -13,7 +13,6 @@ interface PageContentProps {
 const PageContent: React.FC<PageContentProps> = ({ songs }) => {
   const onPlay = useOnPlay(songs);
 
-
   if (songs.length === 0) {
     return (
       <div className='mt-40 text-neutral-400 text-xl shadow-lg flex justify-center'>
@@ -24,16 +23,18 @@ const PageContent: React.FC<PageContentProps> = ({ songs }) => {
   }
 
   return (
-    <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 auto-rows-fr gap-4 mt-4'>
-      {songs.map((item) => (
-        <SongItem
-          onClick={(id: string) => onPlay(id)}
-          key={item.id}
-          data={item}
-          songs={songs}
-        />
-      ))}
-    </div>
+    <>
+      <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 auto-rows-fr gap-4 mt-4'>
+        {songs.map((item) => (
+          <SongItem
+            onClick={(id: string) => onPlay(id)}
+            key={item.id}
+            data={item}
+            songs={songs}
+          />
+        ))}
+      </div>
+    </>
   );
 };
 

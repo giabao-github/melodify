@@ -28,7 +28,6 @@ const SongItem: React.FC<SongItemProps> = ({ data, songs, onClick }) => {
   const artists = data.author.split(',');
   const [isOpen, setIsOpen] = useState(false);
 
-
   const handleAddToPlaylist = async () => {
     if (!user) {
       optionsModal.setTitle('Login required');
@@ -70,7 +69,7 @@ const SongItem: React.FC<SongItemProps> = ({ data, songs, onClick }) => {
         />
       )}
       <div
-        className='w-64 md:w-56 relative group flex flex-col items-center justify-center rounded-md select-none overflow-hidden gap-x-4 bg-neutral-400/5 cursor-pointer hover:bg-neutral-400/15 transition p-3'
+        className='2xl:w-64 md:w-56 relative group flex flex-col items-center justify-center rounded-md select-none overflow-hidden gap-x-4 bg-neutral-400/5 cursor-pointer hover:bg-neutral-400/15 transition p-3'
       >
         <div className='relative aspect-square w-full h-full rounded-md overflow-hidden'>
           <Image

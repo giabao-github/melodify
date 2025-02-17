@@ -180,7 +180,7 @@ const MediaItem: React.FC<MediaItemProps> = ({ data, activeSong, songs, selected
       )}
       <div
         onClick={handleClick}
-        className={`flex items-center gap-x-3 cursor-pointer ${activeSong && activeSong.id === data.id ? 'bg-gradient-to-r from-purple-800 to-purple-500' : ''} hover:bg-gradient-to-r from-purple-800 to-purple-500 w-full h-full px-2 rounded-md select-none`}
+        className={`flex items-center gap-x-3 cursor-pointer ${activeSong && activeSong.id === data.id ? 'bg-gradient-to-r from-purple-800 to-purple-500' : ''} hover:bg-gradient-to-r from-purple-800 to-purple-500 w-full h-full pl-2 pr-3 rounded-md select-none`}
       >
         <div className='relative rounded-md min-h-[56px] min-w-[56px] overflow-hidden'>
           <Image

@@ -5,13 +5,14 @@ import { IoCloseCircle } from 'react-icons/io5';
 interface ModalProps {
   isOpen: boolean;
   onChange: (isOpen: boolean) => void;
-  title: string;
-  description: string;
+  title?: string;
+  description?: string;
   children: React.ReactNode;
   large?: boolean;
+  titleSize?: string;
 }
 
-const Modal: React.FC<ModalProps> = ({ isOpen, onChange, title, description, children, large = false }) => {
+const Modal: React.FC<ModalProps> = ({ isOpen, onChange, title, description, children, large = false, titleSize }) => {
   return (
     <Dialog.Root
       open={isOpen}
@@ -26,7 +27,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onChange, title, description, chi
           className={`z-50 fixed drop-shadow-md border border-yellow-500 top-[50%] left-[50%] max-h-full h-full md:max-h-[95vh] md:h-auto w-full translate-x-[-50%] translate-y-[-50%] rounded-md bg-background p-[25px] md:p-5 focus:outline-none ${large ? 'md:w-[120vw] md:max-w-[850px]' : 'md:w-[100vw] md:max-w-[500px]'}` }
         >
           <Dialog.Title
-            className='text-3xl md:text-2xl text-center font-bold my-4'
+            className={`${titleSize || 'text-3xl md:text-2xl'} text-center font-bold my-4`}
           >
             {title}
           </Dialog.Title>
